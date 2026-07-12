@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Joker Admin — Control Panel</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0a0a0f;
+  --surface:#12121e;
+  --surface2:#1a1a2e;
+  --border:rgba(0,255,136,.2);
+  --accent:#00ff88;
+  --green:#00ff88;
+  --red:#ff4466;
+  --amber:#f59e0b;
+  --text:#e2e8f0;
+  --muted:#8a7d90;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);min-height:100vh;padding:16px;
+  background-image:radial-gradient(ellipse at top,rgba(0,255,136,.08) 0%,transparent 60%),
+    radial-gradient(ellipse at bottom right,rgba(0,255,136,.04) 0%,transparent 60%);}
+
+.card{background:var(--surface);border-radius:16px;padding:16px;margin-bottom:12px;
+  border:1px solid var(--border);
+  box-shadow:0 4px 24px rgba(0,0,0,.4),0 1px 0 rgba(255,255,255,.04) inset;}
+
+.fg{margin-bottom:12px;}
+.fg label{display:block;font-size:10px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+.fg input,.fg select{width:100%;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:10px;padding:11px 13px;font-size:14px;
+  font-family:inherit;outline:none;color:var(--text);}
+.fg input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,255,136,.15);}
+.fg input::placeholder{color:var(--muted);}
+
+.btn{border:none;border-radius:10px;padding:11px 16px;font-weight:800;
+  font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s;}
+.btn-green{background:linear-gradient(135deg,#00ff88,#00cc6a);color:#0a0a0f;
+  box-shadow:0 4px 12px rgba(0,255,136,.3);}
+.btn-green:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,255,136,.4);}
+.btn-accent{background:linear-gradient(135deg,#00ff88,#00cc6a);color:#0a0a0f;
+  box-shadow:0 4px 12px rgba(0,255,136,.3);}
+.btn-outline{background:rgba(0,255,136,.08);color:#00ff88;
+  border:1.5px solid rgba(0,255,136,.3);}
+.btn-red{background:rgba(255,68,102,.1);color:#ff4466;border:1.5px solid rgba(255,68,102,.3);}
+.btn-gray{background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
+
+.plan-pill{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;display:inline-block;}
+.badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-ok{background:rgba(0,255,136,.15);color:#00ff88;}
+.badge-warn{background:rgba(245,158,11,.15);color:#f59e0b;}
+.badge-exp{background:rgba(255,68,102,.15);color:#ff4466;}
+.badge-none{background:rgba(138,125,144,.15);color:#8a7d90;}
+
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);
+  z-index:100;align-items:flex-end;justify-content:center;padding:16px;
+  backdrop-filter:blur(4px);}
+.overlay.show{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);
+  border-radius:20px 20px 0 0;width:100%;max-width:420px;
+  max-height:90vh;overflow-y:auto;
+  box-shadow:0 -8px 40px rgba(0,0,0,.6);}
+
+.tabs{display:flex;gap:8px;margin-bottom:12px;}
+.tab{background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;
+  padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;
+  font-family:inherit;color:var(--muted);}
+.tab.active{background:linear-gradient(135deg,#00ff88,#00cc6a);
+  color:#0a0a0f;border-color:transparent;box-shadow:0 4px 12px rgba(0,255,136,.3);}
+
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;}
+.stat-box{background:var(--surface);border-radius:14px;padding:14px 10px;text-align:center;
+  border:1px solid var(--border);
+  box-shadow:0 2px 12px rgba(0,0,0,.3);}
+.stat-num{font-size:26px;font-weight:900;line-height:1;}
+.stat-lbl{font-size:10px;color:var(--muted);margin-top:4px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.5px;}
+
+.plan-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;}
+.plan-btn{border-radius:10px;padding:10px 6px;font-weight:800;font-size:12px;
+  cursor:pointer;font-family:inherit;text-align:center;border:2px solid;transition:all .15s;}
+.month-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;}
+.month-btn{border-radius:10px;padding:10px;font-weight:800;font-size:13px;
+  cursor:pointer;font-family:inherit;text-align:center;border:2px solid #00ff88;
+  transition:all .15s;}
+
+#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);
+  background:var(--surface);border:1px solid #00ff88;color:var(--text);
+  padding:10px 20px;border-radius:12px;font-size:13px;font-weight:600;
+  z-index:999;display:none;white-space:nowrap;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);}
+
+.alert-red{background:rgba(255,68,102,.1);border:1.5px solid rgba(255,68,102,.3);
+  border-radius:14px;padding:12px 14px;margin-bottom:14px;
+  font-size:13px;color:#ff4466;font-weight:600;}
+
+.client-card{background:var(--surface);border-radius:16px;padding:14px 16px;
+  margin-bottom:12px;border:1px solid var(--border);
+  box-shadow:0 4px 20px rgba(0,0,0,.3);
+  transition:transform .15s;}
+.client-card:hover{transform:translateY(-1px);}
+.client-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+
+#login-screen{display:flex;align-items:center;justify-content:center;
+  min-height:100vh;padding:20px;}
+.login-card{background:var(--surface);border:1px solid var(--border);
+  border-radius:24px;padding:32px 24px;width:100%;max-width:340px;
+  box-shadow:0 24px 64px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.05) inset;}
+.shake{animation:shake .4s ease;}
+@keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-8px);}
+  40%{transform:translateX(8px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
+.err-box{background:rgba(255,68,102,.1);border:1.5px solid rgba(255,68,102,.3);
+  color:#ff4466;padding:10px 12px;margin-top:12px;font-size:13px;
+  font-weight:600;display:none;border-radius:10px;}
+.joker-logo{text-align:center;margin-bottom:24px;}
+.joker-logo-icon{width:64px;height:64px;margin:0 auto 12px;
+  background:linear-gradient(135deg,#00ff88,#00cc6a);
+  border-radius:18px;display:flex;align-items:center;justify-content:center;
+  font-size:28px;box-shadow:0 8px 24px rgba(0,255,136,.4);}
+.joker-logo h1{font-size:22px;font-weight:900;color:#00ff88;}
+.joker-logo p{font-size:11px;color:var(--muted);margin-top:4px;
+  text-transform:uppercase;letter-spacing:1.5px;}
+.login-input{width:100%;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:12px;padding:14px 16px;font-size:15px;outline:none;
+  font-family:inherit;color:var(--text);margin-bottom:4px;}
+.login-input:focus{border-color:#00ff88;box-shadow:0 0 0 3px rgba(0,255,136,.15);}
+.login-input::placeholder{color:var(--muted);}
+.login-btn{width:100%;background:linear-gradient(135deg,#00ff88,#00cc6a);
+  color:#0a0a0f;border:none;border-radius:12px;padding:15px;
+  font-size:15px;font-weight:800;cursor:pointer;margin-top:12px;
+  font-family:inherit;box-shadow:0 8px 24px rgba(0,255,136,.4);
+  transition:all .2s;}
+.login-btn:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(0,255,136,.5);}
+
+.joker-header{background:linear-gradient(135deg,rgba(0,255,136,.15),rgba(0,204,106,.1));
+  border:1px solid var(--border);border-radius:16px;padding:14px 16px;
+  margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 4px 24px rgba(0,0,0,.3);}
+.joker-brand{display:flex;align-items:center;gap:10px;}
+.joker-brand-icon{width:36px;height:36px;background:linear-gradient(135deg,#00ff88,#00cc6a);
+  border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:16px;box-shadow:0 4px 12px rgba(0,255,136,.3);}
+.joker-brand-name{font-size:16px;font-weight:900;color:#00ff88;}
+.joker-brand-sub{font-size:11px;color:var(--muted);}
+
+.pw-box{background:linear-gradient(135deg,rgba(0,255,136,.08),rgba(0,255,136,.04));
+  border:1px solid rgba(0,255,136,.2);border-radius:10px;
+  padding:10px 12px;margin-bottom:10px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="joker-logo">
+      <div class="joker-logo-icon">🃏</div>
+      <h1>Joker Admin</h1>
+      <p>Control Panel</p>
+    </div>
+    <div class="fg">
+      <label>Access Password</label>
+      <input class="login-input" id="login-pass" type="password"
+        placeholder="Enter password"
+        onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="login-btn" onclick="doLogin()">🔐 Authenticate</button>
+    <div class="err-box" id="login-err">❌ Invalid password</div>
+    <div style="text-align:center;margin-top:12px;font-size:11px;color:var(--muted);">
+      Default: <span style="color:#00ff88;font-weight:700;">admin123</span>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN PANEL -->
+<div id="main-panel" style="display:none;">
+
+<!-- Header -->
+<div class="joker-header">
+  <div class="joker-brand">
+    <div class="joker-brand-icon">🃏</div>
+    <div>
+      <div class="joker-brand-name">Joker Admin</div>
+      <div class="joker-brand-sub">Control Panel</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <button class="btn" onclick="openChangeAdminPw()"
+      style="font-size:11px;padding:6px 12px;border-radius:8px;
+      background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(245,158,11,.1));
+      color:#f59e0b;border:1px solid rgba(245,158,11,.3);">🔑 Change Password</button>
+    <button class="btn btn-accent" onclick="openAddClient()"
+      style="font-size:12px;padding:7px 14px;border-radius:8px;">+ Client</button>
+    <button class="btn" onclick="showSubAdmins()"
+      style="font-size:12px;padding:7px 12px;border-radius:8px;
+      background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(245,158,11,.1));
+      color:#f59e0b;border:1px solid rgba(245,158,11,.3);">👥 Sub Admins</button>
+    <button class="btn btn-gray" onclick="doLogout()"
+      style="font-size:11px;padding:6px 10px;">Exit</button>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats">
+  <div class="stat-box">
+    <div class="stat-num" id="s-total" style="color:#00ff88;">0</div>
+    <div class="stat-lbl">Total</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-num" id="s-active" style="color:#00ff88;">0</div>
+    <div class="stat-lbl">Active</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-num" id="s-due" style="color:#ff4466;">0</div>
+    <div class="stat-lbl">Due/Exp</div>
+  </div>
+</div>
+
+<div class="alert-red" id="due-alert" style="display:none;">
+  ⚠️ <span id="due-msg"></span>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="setTab('all',this)">All</button>
+  <button class="tab" onclick="setTab('due',this)">Due / Expired</button>
+  <button class="tab" onclick="setTab('active',this)">Active</button>
+</div>
+
+<div id="client-list"></div>
+</div>
+
+<!-- SUB ADMIN SCREEN -->
+<div id="subadmin-screen" style="display:none;">
+  <div class="joker-header" style="margin-bottom:14px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button class="btn btn-gray" onclick="hideSubAdmins()"
+        style="font-size:12px;padding:7px 12px;">← Back</button>
+      <div>
+        <div class="joker-brand-name">Sub Admins</div>
+        <div class="joker-brand-sub">Manage buyers</div>
+      </div>
+    </div>
+    <button class="btn btn-accent" onclick="openAddSubAdmin()"
+      style="font-size:13px;padding:9px 14px;">+ Add</button>
+  </div>
+  <div id="subadmin-list">
+    <div style="text-align:center;color:var(--muted);padding:40px;">Loading...</div>
+  </div>
+</div>
+
+<!-- ADD SUB ADMIN MODAL -->
+<div class="overlay" id="modal-add-sa">
+  <div class="modal">
+    <div style="padding:16px 18px;background:linear-gradient(135deg,#f59e0b,#d97706);
+      border-radius:20px 20px 0 0;font-weight:800;font-size:15px;color:#0a0a0f;">
+      👤 New Sub Admin
+    </div>
+    <div style="padding:16px;">
+      <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);
+        border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--amber);">
+        Sub admin ko <b>joker-panel.html</b> ka link milega.<br>
+        Woh sirf apne clients manage kar sakta hai.
+      </div>
+      <div class="fg"><label>Name / Business Name *</label>
+        <input id="sa-name" placeholder="e.g. Ramesh Enterprises"/></div>
+      <div class="fg"><label>Password * (jo woh login mein dalega)</label>
+        <input id="sa-pass" type="text" placeholder="e.g. Ram@2025"
+          style="font-family:monospace;font-size:16px;letter-spacing:1px;"/></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <button class="btn btn-gray" onclick="closeModal('modal-add-sa')">Cancel</button>
+        <button class="btn btn-accent" onclick="saveSubAdmin()" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#0a0a0f;">
+          Create Account
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHANGE SUB ADMIN PASSWORD MODAL -->
+<div class="overlay" id="modal-sa-pw">
+  <div class="modal">
+    <div style="padding:16px 18px;background:linear-gradient(135deg,#00ff88,#00cc6a);
+      border-radius:20px 20px 0 0;font-weight:800;font-size:15px;color:#0a0a0f;">
+      🔑 Change Sub Admin Password
+    </div>
+    <div style="padding:16px;">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px;" id="sa-pw-name"></div>
+      <div class="fg"><label>New Password *</label>
+        <input id="sa-pw-input" type="text" placeholder="Naya password"
+          style="font-family:monospace;font-size:16px;letter-spacing:1px;"
+          onkeydown="if(event.key==='Enter')saveSubAdminPw()"/></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <button class="btn btn-gray" onclick="closeModal('modal-sa-pw')">Cancel</button>
+        <button class="btn btn-accent" onclick="saveSubAdminPw()">💾 Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CLIENT MODAL -->
+<div class="overlay" id="modal-add">
+  <div class="modal">
+    <div style="padding:16px 18px;background:linear-gradient(135deg,#00ff88,#00cc6a);
+      border-radius:20px 20px 0 0;font-weight:800;font-size:15px;color:#0a0a0f;">
+      ➕ New Client
+    </div>
+    <div style="padding:16px;">
+      <div class="fg"><label>Client Name *</label>
+        <input id="a-name" placeholder="e.g. Ramesh Sharma"/></div>
+      <div class="fg"><label>Firebase URL *</label>
+        <input id="a-url" placeholder="https://xxx-default-rtdb.firebaseio.com" type="url"/></div>
+      <div class="fg"><label>API Key</label>
+        <input id="a-key" placeholder="AIzaSy..." type="password"/></div>
+      <div class="fg"><label>Project ID</label>
+        <input id="a-pid" placeholder="your-project-id"/></div>
+      <div class="fg"><label>Main Node</label>
+        <input id="a-node" value="csc6"/></div>
+      <div class="fg"><label>Plan</label>
+        <div class="plan-grid">
+          <button class="plan-btn" data-plan="basic" data-price="5000"
+            style="background:rgba(59,130,246,.15);color:#3b82f6;border-color:#3b82f6;"
+            onclick="selectPlan(this)">Basic<br><span style="font-size:11px">₹5,000</span></button>
+          <button class="plan-btn" data-plan="standard" data-price="10000"
+            style="background:rgba(139,92,246,.08);color:#8b5cf6;border-color:#8b5cf6;"
+            onclick="selectPlan(this)">Standard<br><span style="font-size:11px">₹10,000</span></button>
+          <button class="plan-btn" data-plan="premium" data-price="15000"
+            style="background:rgba(245,158,11,.08);color:#f59e0b;border-color:#f59e0b;"
+            onclick="selectPlan(this)">Premium<br><span style="font-size:11px">₹15,000</span></button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <button class="btn btn-gray" onclick="closeModal('modal-add')">Cancel</button>
+        <button class="btn btn-green" onclick="saveClient()">Save Client</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAYMENT MODAL -->
+<div class="overlay" id="modal-pay">
+  <div class="modal">
+    <div style="padding:16px 18px;background:linear-gradient(135deg,#00ff88,#00cc6a);
+      border-radius:20px 20px 0 0;font-weight:800;font-size:15px;color:#0a0a0f;">
+      💳 Record Payment
+    </div>
+    <div style="padding:16px;">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px;" id="pay-client-name"></div>
+      <div style="background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.2);
+        border-radius:12px;padding:12px;margin-bottom:14px;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Current Status</div>
+        <span id="pay-status-badge"></span>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px;" id="pay-current-expiry"></div>
+      </div>
+      <div class="fg"><label>Months</label>
+        <div class="month-grid">
+          <button class="month-btn" data-months="1" onclick="selectMonths(this)"
+            style="background:#00ff88;color:#0a0a0f;">
+            1 Month<br><span class="month-price" style="font-size:11px"></span></button>
+          <button class="month-btn" data-months="2" onclick="selectMonths(this)"
+            style="background:transparent;color:#00ff88;">
+            2 Months<br><span class="month-price" style="font-size:11px"></span></button>
+          <button class="month-btn" data-months="3" onclick="selectMonths(this)"
+            style="background:transparent;color:#00ff88;">
+            3 Months<br><span class="month-price" style="font-size:11px"></span></button>
+        </div>
+      </div>
+      <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);
+        border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;">
+        <span style="color:var(--amber);font-weight:700;">New expiry: </span>
+        <span style="color:var(--amber);" id="pay-new-expiry"></span>
+      </div>
+      <div class="fg"><label>Note (optional)</label>
+        <input id="pay-note" placeholder="e.g. GPay, cash, UPI..."/></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <button class="btn btn-gray" onclick="closeModal('modal-pay')">Cancel</button>
+        <button class="btn btn-green" onclick="confirmPayment()">✅ Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHANGE ADMIN PASSWORD MODAL -->
+<div class="overlay" id="modal-changepw">
+  <div class="modal">
+    <div style="padding:16px 18px;background:linear-gradient(135deg,#f59e0b,#d97706);
+      border-radius:20px 20px 0 0;font-weight:800;font-size:15px;color:#0a0a0f;">
+      🔑 Change Admin Password
+    </div>
+    <div style="padding:16px;">
+      <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);
+        border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#f59e0b;">
+        Naya password daalo. Ye <b>localStorage</b> mein save hoga.
+      </div>
+      <div class="fg"><label>New Password *</label>
+        <input id="new-admin-pw" type="text" placeholder="Enter new password"
+          style="font-size:18px;letter-spacing:2px;font-family:monospace;"
+          onkeydown="if(event.key==='Enter')saveNewAdminPw()"/></div>
+      <div class="fg"><label>Confirm Password *</label>
+        <input id="confirm-admin-pw" type="text" placeholder="Re-enter new password"
+          style="font-size:18px;letter-spacing:2px;font-family:monospace;"
+          onkeydown="if(event.key==='Enter')saveNewAdminPw()"/></div>
+      <div id="changepw-err" style="display:none;background:rgba(255,68,102,.1);border:1px solid rgba(255,68,102,.3);
+        border-radius:8px;padding:9px 12px;margin-bottom:12px;font-size:13px;color:#ff4466;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <button class="btn btn-gray" onclick="closeModal('modal-changepw')">Cancel</button>
+        <button class="btn btn-green" onclick="saveNewAdminPw()">💾 Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHANGE CLIENT PASSWORD MODAL -->
+<div class="overlay" id="modal-cpw">
+  <div class="modal">
+    <div style="padding:16px 18px;background:linear-gradient(135deg,#00ff88,#00cc6a);
+      border-radius:20px 20px 0 0;font-weight:800;font-size:15px;color:#0a0a0f;">
+      🔑 Change Firebase Password
+    </div>
+    <div style="padding:16px;">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px;" id="cpw-client-name"></div>
+      <div style="background:rgba(0,255,136,.08);border:1.5px solid rgba(0,255,136,.2);
+        border-radius:10px;padding:10px 14px;margin-bottom:14px;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Current Password</div>
+        <div id="cpw-current" style="font-size:18px;font-weight:800;color:#00ff88;
+          letter-spacing:2px;font-family:monospace;">---</div>
+      </div>
+      <div class="fg"><label>New Password</label>
+        <input id="cpw-input" type="text" placeholder="Naya password daalo"
+          onkeydown="if(event.key==='Enter')doChangePw()"/></div>
+      <div style="background:rgba(255,68,102,.1);border:1px solid rgba(255,68,102,.3);
+        border-radius:8px;padding:9px 12px;margin-bottom:12px;font-size:12px;
+        color:#ff4466;display:none;" id="cpw-err"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <button class="btn btn-gray" onclick="closeModal('modal-cpw')">Cancel</button>
+        <button class="btn btn-green" id="cpw-btn" onclick="doChangePw()">💾 Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   Joker Admin Panel - Complete
+   Default password: admin123
+   ============================================================ */
+
+var SESSION_KEY = 'joker_admin_auth';
+
+/* --- Load saved password from localStorage --- */
+function getAdminPassword(){
+  var saved = localStorage.getItem('joker_admin_password');
+  if(saved) return saved;
+  return 'admin123';
+}
+
+function setAdminPassword(newPass){
+  localStorage.setItem('joker_admin_password', newPass);
+}
+
+/* --- LOGIN --- */
+function doLogin(){
+  var pass = document.getElementById('login-pass').value;
+  if(pass === getAdminPassword()){
+    sessionStorage.setItem(SESSION_KEY, '1');
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-panel').style.display = 'block';
+    renderAll();
+  } else {
+    var box = document.getElementById('login-err');
+    box.style.display = 'block';
+    var card = box.closest('.login-card');
+    card.classList.remove('shake');
+    void card.offsetWidth;
+    card.classList.add('shake');
+    document.getElementById('login-pass').value = '';
+    document.getElementById('login-pass').focus();
+  }
+}
+
+function doLogout(){
+  sessionStorage.removeItem(SESSION_KEY);
+  document.getElementById('main-panel').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-err').style.display = 'none';
+}
+
+window.addEventListener('load', function(){
+  if(sessionStorage.getItem(SESSION_KEY) === '1'){
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-panel').style.display = 'block';
+    renderAll();
+  }
+});
+
+/* --- CHANGE ADMIN PASSWORD --- */
+function openChangeAdminPw(){
+  document.getElementById('new-admin-pw').value = '';
+  document.getElementById('confirm-admin-pw').value = '';
+  document.getElementById('changepw-err').style.display = 'none';
+  openModal('modal-changepw');
+  setTimeout(function(){ document.getElementById('new-admin-pw').focus(); }, 200);
+}
+
+function saveNewAdminPw(){
+  var newPw = document.getElementById('new-admin-pw').value.trim();
+  var confirmPw = document.getElementById('confirm-admin-pw').value.trim();
+  var errEl = document.getElementById('changepw-err');
+  
+  if(!newPw || newPw.length < 4){
+    errEl.textContent = '❌ Password at least 4 characters!';
+    errEl.style.display = 'block';
+    return;
+  }
+  if(newPw !== confirmPw){
+    errEl.textContent = '❌ Passwords do not match!';
+    errEl.style.display = 'block';
+    return;
+  }
+  
+  setAdminPassword(newPw);
+  errEl.style.display = 'none';
+  closeModal('modal-changepw');
+  showToast('✅ Password changed! New: ' + newPw);
+  
+  setTimeout(function(){
+    if(confirm('Password changed! Logout and test new password?')){
+      doLogout();
+    }
+  }, 500);
+}
+
+/* --- FIREBASE STORAGE --- */
+var ADMIN_FB_URL = 'https://joker-monitor-default-rtdb.firebaseio.com';
+var ADMIN_FB_KEY = 'AIzaSyCwcXVB4KQQ4VVB9KXB0BAQVBVgkJVQhAAVwGDkBEVldNFQpWCFIPUhFZHQ1RX18';
+var ADMIN_AUTH = '?auth=' + encodeURIComponent(ADMIN_FB_KEY);
+
+var clients = [];
+var subAdmins = [];
+var curTab = 'all';
+var curPayClient = null;
+var curPlan = 'basic';
+var curMonths = 1;
+var curSaId = null;
+
+function fbSaveAll(){
+  fetch(ADMIN_FB_URL + '/joker_super.json' + ADMIN_AUTH, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(clients)
+  }).catch(function(e){ console.log('save err', e.message); });
+  try{ localStorage.setItem('joker_clients', JSON.stringify(clients)); } catch(e){}
+}
+
+function fbLoadAll(cb){
+  fetch(ADMIN_FB_URL + '/joker_super.json' + ADMIN_AUTH)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(data && Array.isArray(data) && data.length > 0){
+        clients = data;
+      } else {
+        try{
+          var l = JSON.parse(localStorage.getItem('joker_clients') || '[]');
+          if(l.length > 0){ clients = l; fbSaveAll(); } else { clients = []; }
+        } catch(e){ clients = []; }
+      }
+      if(cb) cb();
+    })
+    .catch(function(){
+      try{ clients = JSON.parse(localStorage.getItem('joker_clients') || '[]'); }
+      catch(e){ clients = []; }
+      if(cb) cb();
+    });
+}
+
+function saveAll(){ fbSaveAll(); }
+
+/* --- SUB ADMIN --- */
+function showSubAdmins(){
+  document.getElementById('main-panel').style.display = 'none';
+  document.getElementById('subadmin-screen').style.display = 'block';
+  loadSubAdmins();
+}
+
+function hideSubAdmins(){
+  document.getElementById('subadmin-screen').style.display = 'none';
+  document.getElementById('main-panel').style.display = 'block';
+}
+
+function loadSubAdmins(){
+  document.getElementById('subadmin-list').innerHTML = 
+    '<div style="text-align:center;color:var(--muted);padding:30px;">Loading...</div>';
+  fetch(ADMIN_FB_URL + '/joker_admins.json' + ADMIN_AUTH)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      subAdmins = [];
+      if(data && typeof data === 'object'){
+        Object.keys(data).forEach(function(k){
+          if(data[k]) subAdmins.push(Object.assign({_id: k}, data[k]));
+        });
+      }
+      renderSubAdmins();
+    })
+    .catch(function(){
+      document.getElementById('subadmin-list').innerHTML = 
+        '<div style="text-align:center;color:#ff4466;padding:30px;">Load failed</div>';
+    });
+}
+
+function renderSubAdmins(){
+  var list = document.getElementById('subadmin-list');
+  if(!subAdmins.length){
+    list.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px;font-size:14px;">' +
+      'Koi sub admin nahi — "+ Add" se banao</div>';
+    return;
+  }
+  var html = '';
+  subAdmins.forEach(function(sa){
+    var clientCount = (sa.clients && Array.isArray(sa.clients)) ? sa.clients.length : 0;
+    html += '<div class="client-card" style="border-left:4px solid #f59e0b;">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
+      + '<div style="font-weight:800;font-size:15px;color:var(--text);">👤 ' + sa.name + '</div>'
+      + (sa.active !== false ? '<span class="badge badge-ok">✅ Active</span>' : '<span class="badge badge-exp">🚫 Blocked</span>')
+      + '</div>'
+      + '<div style="display:flex;gap:10px;margin-bottom:10px;">'
+      + '<div style="background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.2);'
+      + 'border-radius:8px;padding:6px 12px;font-size:13px;color:#00ff88;">'
+      + '📋 ' + clientCount + ' clients</div>'
+      + '<div style="background:rgba(138,125,144,.1);border:1px solid rgba(138,125,144,.2);'
+      + 'border-radius:8px;padding:6px 12px;font-size:11px;color:var(--muted);">'
+      + 'Created: ' + (sa.created ? new Date(sa.created).toLocaleDateString('en-IN') : '—') + '</div>'
+      + '</div>'
+      + '<div class="pw-box">'
+      + '<div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">🔑 Login Password</div>'
+      + '<div style="font-size:16px;font-weight:800;color:#00ff88;letter-spacing:2px;font-family:monospace;">'
+      + (sa.password_plain || '••••••••') + '</div></div>'
+      + '</div>'
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap;">'
+      + '<button class="btn btn-outline" style="font-size:12px;padding:7px 11px;" '
+      + 'onclick="copySaLink(\'' + sa._id + '\')">🔗 Link</button>'
+      + '<button class="btn btn-accent" style="font-size:12px;padding:7px 11px;" '
+      + 'onclick="openSaPw(\'' + sa._id + '\',\'' + sa.name.replace(/'/g,"\\'") + '\')">🔑 Password</button>'
+      + '<button class="btn ' + (sa.active !== false ? 'btn-red' : 'btn-green') + '" '
+      + 'style="font-size:12px;padding:7px 11px;" '
+      + 'onclick="toggleSaActive(\'' + sa._id + '\',\'' + sa.name.replace(/'/g,"\\'") + '\')"> '
+      + (sa.active !== false ? '🚫 Block' : '✅ Unblock') + '</button>'
+      + '<button class="btn btn-red" style="font-size:12px;padding:7px 11px;" '
+      + 'onclick="deleteSa(\'' + sa._id + '\',\'' + sa.name.replace(/'/g,"\\'") + '\')">🗑️</button>'
+      + '</div></div>';
+  });
+  list.innerHTML = html;
+}
+
+function openAddSubAdmin(){
+  document.getElementById('sa-name').value = '';
+  document.getElementById('sa-pass').value = '';
+  openModal('modal-add-sa');
+  setTimeout(function(){ document.getElementById('sa-name').focus(); }, 200);
+}
+
+function saveSubAdmin(){
+  var name = document.getElementById('sa-name').value.trim();
+  var pass = document.getElementById('sa-pass').value.trim();
+  if(!name || !pass){ showToast('Name aur password zaroori hai!'); return; }
+  var id = 'sa_' + Date.now();
+  var obj = { name: name, password_plain: pass, active: true,
+    created: new Date().toISOString(), clients: [] };
+  fetch(ADMIN_FB_URL + '/joker_admins/' + id + '.json' + ADMIN_AUTH, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(obj)
+  }).then(function(r){
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    showToast('✅ Sub admin created: ' + name);
+    closeModal('modal-add-sa');
+    loadSubAdmins();
+  }).catch(function(e){ showToast('Error: ' + e.message); });
+}
+
+function copySaLink(id){
+  var base = window.location.origin + window.location.pathname.replace('joker-admin.html', 'joker-panel.html');
+  var link = base + '#' + btoa('sa:' + id);
+  if(navigator.clipboard) navigator.clipboard.writeText(link).catch(function(){});
+  showToast('📋 Sub admin link copied!');
+}
+
+function openSaPw(id, name){
+  curSaId = id;
+  document.getElementById('sa-pw-name').textContent = name;
+  document.getElementById('sa-pw-input').value = '';
+  openModal('modal-sa-pw');
+  setTimeout(function(){ document.getElementById('sa-pw-input').focus(); }, 200);
+}
+
+function saveSubAdminPw(){
+  if(!curSaId) return;
+  var pass = document.getElementById('sa-pw-input').value.trim();
+  if(!pass){ showToast('Password daalo!'); return; }
+  fetch(ADMIN_FB_URL + '/joker_admins/' + curSaId + '.json' + ADMIN_AUTH, {
+    method: 'PATCH',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ password_plain: pass })
+  }).then(function(r){
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    showToast('✅ Password updated!');
+    closeModal('modal-sa-pw');
+    loadSubAdmins();
+  }).catch(function(e){ showToast('Error: ' + e.message); });
+}
+
+function toggleSaActive(id, name){
+  var sa = subAdmins.find(function(x){ return x._id === id; });
+  if(!sa) return;
+  var newVal = sa.active === false ? true : false;
+  if(!confirm("'" + name + "' ko " + (newVal ? 'unblock' : 'block') + " karo?")) return;
+  fetch(ADMIN_FB_URL + '/joker_admins/' + id + '/active.json' + ADMIN_AUTH, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(newVal)
+  }).then(function(){
+    showToast((newVal ? '✅ Unblocked: ' : '🚫 Blocked: ') + name);
+    loadSubAdmins();
+  }).catch(function(e){ showToast('Error: ' + e.message); });
+}
+
+function deleteSa(id, name){
+  if(!confirm("'" + name + "' ko permanently delete karo?")) return;
+  fetch(ADMIN_FB_URL + '/joker_admins/' + id + '.json' + ADMIN_AUTH, { method: 'DELETE' })
+    .then(function(){ showToast('Deleted: ' + name); loadSubAdmins(); })
+    .catch(function(e){ showToast('Error: ' + e.message); });
+}
+
+/* --- PLANS --- */
+var PLANS = {
+  basic: { label: 'Basic', price: 5000, color: '#3b82f6' },
+  standard: { label: 'Standard', price: 10000, color: '#8b5cf6' },
+  premium: { label: 'Premium', price: 15000, color: '#f59e0b' }
+};
+var BASE_URL = 'https://y5667.github.io/joker-monitor/';
+
+/* --- UTILS --- */
+function daysLeft(e){ if(!e) return null; return Math.ceil((new Date(e) - new Date()) / 86400000); }
+function fmtDate(iso){ if(!iso) return '—'; return new Date(iso).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}); }
+function badgeHtml(e){ var d = daysLeft(e);
+  if(d === null) return '<span class="badge badge-none">No Plan</span>';
+  if(d < 0) return '<span class="badge badge-exp">❌ Expired</span>';
+  if(d <= 5) return '<span class="badge badge-warn">⚠️ ' + d + 'd left</span>';
+  return '<span class="badge badge-ok">✅ Active · ' + d + 'd</span>';
+}
+function planBadge(id){ var p = PLANS[id] || PLANS.basic;
+  return '<span class="plan-pill" style="background:' + p.color + '20;color:' + p.color + ';">' + p.label + ' · ₹' + p.price.toLocaleString('en-IN') + '/mo</span>';
+}
+
+function encodeLink(c, isAdmin){
+  var tgId = (localStorage.getItem('joker_tg_id') || 'munnadhotarchor').replace(/^@/,'');
+  var payload = { u: c.fbUrl, k: c.apiKey || '', n: c.node || 'csc6', p: c.pid || '', t: tgId, a: isAdmin ? 1 : 0 };
+  return btoa(unescape(encodeURIComponent(JSON.stringify(payload)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+
+function showToast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  clearTimeout(window._tt);
+  window._tt = setTimeout(function(){ t.style.display = 'none'; }, 3000);
+}
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+function setTab(tab, el){
+  curTab = tab;
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  el.classList.add('active');
+  renderList();
+}
+
+/* --- RENDER --- */
+function renderAll(skip){
+  if(skip){ _stats(); return; }
+  fbLoadAll(function(){ _stats(); });
+}
+function _stats(){
+  var total = clients.length;
+  var active = clients.filter(function(c){ var d = daysLeft(c.expiry); return d !== null && d > 5; }).length;
+  var due = clients.filter(function(c){ var d = daysLeft(c.expiry); return d === null || d <= 5; }).length;
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-active').textContent = active;
+  document.getElementById('s-due').textContent = due;
+  var al = document.getElementById('due-alert');
+  if(due > 0){ al.style.display = 'block';
+    document.getElementById('due-msg').textContent = due + ' client' + (due > 1 ? 's' : '') + ' ka payment due/expired!'; }
+  else{ al.style.display = 'none'; }
+  renderList();
+}
+function renderList(){
+  var filtered = clients.filter(function(c){
+    if(curTab === 'due'){ var d = daysLeft(c.expiry); return d === null || d <= 5; }
+    if(curTab === 'active'){ var d = daysLeft(c.expiry); return d !== null && d > 5; }
+    return true;
+  });
+  var list = document.getElementById('client-list');
+  if(!filtered.length){
+    list.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px;font-size:14px;">'
+      + (clients.length === 0 ? 'No clients — "+ Client" se add karo' : 'Koi client nahi is category mein') + '</div>';
+    return;
+  }
+  var html = '';
+  filtered.forEach(function(c){
+    var p = PLANS[c.plan] || PLANS.basic;
+    var d = daysLeft(c.expiry);
+    var expired = d !== null && d < 0;
+    var nm = c.name.replace(/'/g,"\\'");
+    html += '<div class="client-card" style="border-left:4px solid ' + p.color + ';">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
+      + '<div style="font-weight:800;font-size:15px;color:' + (c.suspended ? 'var(--muted)' : 'var(--text)') + ';">' + c.name + '</div>'
+      + (c.suspended ? '<span class="badge badge-none">🚫 Suspended</span>' : badgeHtml(c.expiry)) + '</div>'
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">' + planBadge(c.plan)
+      + '<span class="plan-pill" style="background:rgba(138,125,144,.15);color:var(--muted);">' + c.node + '</span></div>'
+      + '<div style="font-size:12px;color:var(--muted);margin-bottom:4px;">'
+      + (c.suspended ? '<span style="color:#ff4466;font-weight:700;">🚫 Suspended</span>'
+        : (c.expiry ? (expired ? '❌ Expired: ' : '📅 Till: ') + fmtDate(c.expiry) : '📅 No plan')) + '</div>'
+      + '<div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Added: ' + fmtDate(c.createdAt) + '</div>'
+      + '<div class="pw-box">'
+      + '<div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">🔑 Firebase Password</div>'
+      + '<div id="pw-' + c.id + '" style="font-size:16px;font-weight:800;color:#00ff88;letter-spacing:2px;font-family:monospace;">...</div></div>'
+      + '<button class="btn btn-outline" style="font-size:11px;padding:5px 10px;" onclick="openChangePw(\'' + c.id + '\')">✏️</button>'
+      + '</div>'
+      + '<div class="client-actions">'
+      + '<button class="btn btn-outline" style="font-size:12px;padding:7px 11px;" onclick="copyLinkForClient(\'' + c.id + '\')">🔗 Link</button>'
+      + '<button class="btn btn-outline" style="font-size:12px;padding:7px 11px;border-color:#8b5cf6;color:#8b5cf6;" onclick="copyAdminLink(\'' + c.id + '\')">🔓 Admin</button>'
+      + '<button class="btn ' + (expired ? 'btn-red' : 'btn-green') + '" style="font-size:12px;padding:7px 11px;" onclick="openPayment(\'' + c.id + '\')">💳 ' + (expired ? 'Renew' : 'Pay') + '</button>'
+      + '<button class="btn ' + (c.suspended ? 'btn-green' : 'btn-outline') + '" style="font-size:12px;padding:7px 11px;' + (c.suspended ? '' : 'border-color:var(--amber);color:var(--amber);') + '" onclick="toggleSuspend(\'' + c.id + '\',\'' + nm + '\')">' + (c.suspended ? '✅ Unsuspend' : '🚫 Suspend') + '</button>'
+      + '<button class="btn btn-outline" style="font-size:12px;padding:7px 11px;" onclick="showHistory(\'' + c.id + '\')">📋</button>'
+      + '<button class="btn btn-red" style="font-size:12px;padding:7px 11px;" onclick="deleteClient(\'' + c.id + '\',\'' + nm + '\')">🗑️</button>'
+      + '</div></div>';
+  });
+  list.innerHTML = html;
+  filtered.forEach(function(c){ fetchPw(c.id); });
+}
+
+/* --- PASSWORD --- */
+function fetchPw(id){
+  var c = clients.find(function(x){ return x.id === id; });
+  if(!c) return;
+  var auth = c.apiKey ? '?auth=' + encodeURIComponent(c.apiKey) : '';
+  var el = document.getElementById('pw-' + id);
+  if(!el) return;
+  fetch(c.fbUrl + '/' + (c.node || 'csc6') + '/Admin_Password.json' + auth)
+    .then(function(r){ return r.json(); })
+    .then(function(v){
+      if(el){ el.textContent = v ? String(v) : '(not set)'; el.style.color = v ? '#00ff88' : 'var(--muted)'; }
+    }).catch(function(){ if(el){ el.textContent = '⚠️'; el.style.color = 'var(--amber)'; } });
+}
+var curPwId = null;
+function openChangePw(id){
+  curPwId = id;
+  var c = clients.find(function(x){ return x.id === id; });
+  document.getElementById('cpw-client-name').textContent = c ? c.name : '';
+  document.getElementById('cpw-input').value = '';
+  document.getElementById('cpw-err').style.display = 'none';
+  document.getElementById('cpw-btn').textContent = '💾 Save';
+  document.getElementById('cpw-btn').disabled = false;
+  var pw = document.getElementById('pw-' + id);
+  document.getElementById('cpw-current').textContent = pw ? pw.textContent : '---';
+  openModal('modal-cpw');
+  setTimeout(function(){ document.getElementById('cpw-input').focus(); }, 200);
+}
+function doChangePw(){
+  var c = clients.find(function(x){ return x.id === curPwId; });
+  if(!c) return;
+  var np = document.getElementById('cpw-input').value.trim();
+  var err = document.getElementById('cpw-err');
+  var btn = document.getElementById('cpw-btn');
+  if(!np){ err.textContent = 'Password daalo!'; err.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = 'Saving...'; err.style.display = 'none';
+  var auth = c.apiKey ? '?auth=' + encodeURIComponent(c.apiKey) : '';
+  fetch(c.fbUrl + '/' + (c.node || 'csc6') + '/Admin_Password.json' + auth, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(np)
+  }).then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+  .then(function(){
+    showToast('✅ Password updated!');
+    closeModal('modal-cpw');
+    setTimeout(function(){ fetchPw(curPwId); }, 300);
+  }).catch(function(e){
+    btn.disabled = false; btn.textContent = '💾 Save';
+    err.textContent = 'Error: ' + e.message; err.style.display = 'block';
+  });
+}
+
+/* --- ADD CLIENT --- */
+function selectPlan(btn){
+  curPlan = btn.dataset.plan;
+  document.querySelectorAll('.plan-btn').forEach(function(b){
+    var bp = PLANS[b.dataset.plan];
+    var sel = b.dataset.plan === curPlan;
+    b.style.background = sel ? bp.color + '30' : 'rgba(0,0,0,0)';
+    b.style.borderWidth = sel ? '2.5px' : '2px';
+  });
+}
+function openAddClient(){
+  ['a-name','a-url','a-pid'].forEach(function(id){ document.getElementById(id).value = ''; });
+  document.getElementById('a-key').value = '';
+  document.getElementById('a-node').value = 'csc6';
+  curPlan = 'basic';
+  selectPlan(document.querySelector('.plan-btn[data-plan="basic"]'));
+  openModal('modal-add');
+}
+function saveClient(){
+  var name = document.getElementById('a-name').value.trim();
+  var url = document.getElementById('a-url').value.trim().replace(/\/+$/, '');
+  var key = document.getElementById('a-key').value.trim();
+  var pid = document.getElementById('a-pid').value.trim();
+  var node = document.getElementById('a-node').value.trim() || 'csc6';
+  if(!name || !url){ showToast('Name aur Firebase URL zaroori hai!'); return; }
+  var c = { id: 'c_' + Date.now(), name: name, fbUrl: url, apiKey: key, pid: pid, node: node,
+    plan: curPlan, expiry: null, payments: [], createdAt: new Date().toISOString() };
+  clients.unshift(c); saveAll(); renderAll(true);
+  closeModal('modal-add'); showToast('✅ Client added: ' + name);
+}
+
+/* --- PAYMENT --- */
+function selectMonths(btn){
+  curMonths = parseInt(btn.dataset.months);
+  document.querySelectorAll('.month-btn').forEach(function(b){
+    var sel = parseInt(b.dataset.months) === curMonths;
+    b.style.background = sel ? '#00ff88' : 'transparent';
+    b.style.color = sel ? '#0a0a0f' : '#00ff88';
+  });
+  updatePayPreview();
+}
+function updatePayPreview(){
+  if(!curPayClient) return;
+  var p = PLANS[curPayClient.plan] || PLANS.basic;
+  document.querySelectorAll('.month-price').forEach(function(el, i){
+    el.textContent = '₹' + (p.price * (i + 1)).toLocaleString('en-IN');
+  });
+  var base = curPayClient.expiry && new Date(curPayClient.expiry) > new Date() ? new Date(curPayClient.expiry) : new Date();
+  var nd = new Date(base); nd.setMonth(nd.getMonth() + curMonths);
+  document.getElementById('pay-new-expiry').textContent = fmtDate(nd.toISOString());
+}
+function openPayment(id){
+  curPayClient = clients.find(function(c){ return c.id === id; });
+  if(!curPayClient) return;
+  curMonths = 1;
+  document.getElementById('pay-client-name').textContent = curPayClient.name;
+  document.getElementById('pay-status-badge').innerHTML = badgeHtml(curPayClient.expiry);
+  document.getElementById('pay-current-expiry').textContent = curPayClient.expiry ? 'Till: ' + fmtDate(curPayClient.expiry) : 'No active plan';
+  document.getElementById('pay-note').value = '';
+  document.querySelectorAll('.month-btn').forEach(function(b, i){
+    b.style.background = i === 0 ? '#00ff88' : 'transparent';
+    b.style.color = i === 0 ? '#0a0a0f' : '#00ff88';
+  });
+  updatePayPreview(); openModal('modal-pay');
+}
+function confirmPayment(){
+  if(!curPayClient) return;
+  var p = PLANS[curPayClient.plan] || PLANS.basic;
+  var base = curPayClient.expiry && new Date(curPayClient.expiry) > new Date() ? new Date(curPayClient.expiry) : new Date();
+  var nd = new Date(base); nd.setMonth(nd.getMonth() + curMonths);
+  var pay = { date: new Date().toISOString(), months: curMonths, amount: p.price * curMonths,
+    note: document.getElementById('pay-note').value.trim(), newExpiry: nd.toISOString() };
+  curPayClient.expiry = nd.toISOString();
+  curPayClient.payments = (curPayClient.payments || []).concat([pay]);
+  saveAll(); renderAll(true); closeModal('modal-pay');
+  showToast('✅ Payment recorded! Expiry: ' + fmtDate(nd.toISOString()));
+}
+
+/* --- SUSPEND --- */
+function toggleSuspend(id, name){
+  var c = clients.find(function(x){ return x.id === id; });
+  if(!c) return;
+  if(!confirm("'" + name + "' ko " + (c.suspended ? 'unsuspend' : 'suspend') + " karo?")) return;
+  c.suspended = !c.suspended;
+  var auth = c.apiKey ? '?auth=' + encodeURIComponent(c.apiKey) : '';
+  fetch(c.fbUrl + '/' + (c.node || 'csc6') + '/Subscription/suspended.json' + auth, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(c.suspended)
+  }).then(function(r){
+    if(!r.ok) showToast('⚠️ Firebase update fail');
+    else showToast((c.suspended ? '🚫 Suspended: ' : '✅ Unsuspended: ') + name);
+  }).catch(function(){ showToast('⚠️ Firebase update fail'); });
+  saveAll(); renderAll(true);
+}
+
+/* --- HISTORY --- */
+function showHistory(id){
+  var c = clients.find(function(x){ return x.id === id; });
+  if(!c) return;
+  var h = (c.payments || []).slice().reverse().map(function(p){
+    return fmtDate(p.date) + ' — ₹' + p.amount.toLocaleString('en-IN') + ' (' + p.months + ' mo)' + (p.note ? ' [' + p.note + ']' : '');
+  }).join('\n') || 'No payment history';
+  alert('Payment History — ' + c.name + '\n\n' + h);
+}
+
+/* --- DELETE --- */
+function deleteClient(id, name){
+  if(!confirm("'" + name + "' delete karo?")) return;
+  clients = clients.filter(function(c){ return c.id !== id; });
+  saveAll(); renderAll(true); showToast('Deleted: ' + name);
+}
+
+/* --- LINKS --- */
+function copyLinkForClient(id){
+  var c = clients.find(function(x){ return x.id === id; });
+  if(!c) return;
+  try{
+    var link = BASE_URL + '#' + encodeLink(c, false);
+    if(navigator.clipboard) navigator.clipboard.writeText(link).catch(function(){});
+    showToast('📋 Client link copied!');
+  } catch(e){ showToast('Error: ' + e.message); }
+}
+function copyAdminLink(id){
+  var c = clients.find(function(x){ return x.id === id; });
+  if(!c) return;
+  try{
+    var link = BASE_URL + '#' + encodeLink(c, true);
+    if(navigator.clipboard) navigator.clipboard.writeText(link).catch(function(){});
+    showToast('🔓 Admin link copied!');
+  } catch(e){ showToast('Error: ' + e.message); }
+}
+</script>
+</body>
+</html>
