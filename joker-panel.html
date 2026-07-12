@@ -20,6 +20,7 @@
   --white:#e6edf3;
   --muted:#8a7d90;
   --red:#ff4466;
+  --red-soft:rgba(255,68,102,.12);
   --text-bright:#ffffff;
 }
 body{font-family:'Inter','Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--white);min-height:100vh;
@@ -136,6 +137,13 @@ html{overscroll-behavior-y:none;background:var(--bg);}
 .spin{width:20px;height:20px;border:2px solid var(--border);
   border-top-color:var(--green);border-radius:50%;animation:sp .8s linear infinite;}
 @keyframes sp{to{transform:rotate(360deg);}}
+
+/* ===== HASH INFO ===== */
+.hash-info{background:rgba(255,255,255,.04);border:1px solid var(--border);
+  border-radius:8px;padding:8px 10px;margin-bottom:12px;font-size:11px;
+  color:var(--muted);word-break:break-all;font-family:monospace;}
+.hash-info .label{color:#8a7d90;}
+.hash-info .value{color:#00ff88;}
 </style>
 </head>
 <body>
@@ -156,6 +164,11 @@ html{overscroll-behavior-y:none;background:var(--bg);}
       <span class="text"><strong>Link to continue the login</strong></span>
     </div>
 
+    <!-- Hash Info (Debug) -->
+    <div id="hash-info" class="hash-info" style="display:none;">
+      <span class="label">🔑 Link detected!</span>
+    </div>
+
     <!-- Quick Connect (Link-based) -->
     <div id="qc-section" style="display:none;">
       <div class="fg">
@@ -168,7 +181,7 @@ html{overscroll-behavior-y:none;background:var(--bg);}
     </div>
 
     <!-- Manual Setup -->
-    <div id="full-setup-section" style="display:none;">
+    <div id="full-setup-section" style="display:block;">
       <div class="fg"><label>Firebase Database URL</label>
         <input id="cfg-url" placeholder="https://xxx-default-rtdb.firebaseio.com" autocomplete="off"/></div>
       <div class="fg"><label>API Key</label>
@@ -214,7 +227,7 @@ html{overscroll-behavior-y:none;background:var(--bg);}
 
 <script>
 /* ============================================================
-   Joker Penl - Link-Based Auto-Login
+   Joker Penl - Working Link-Based Login
    ============================================================ */
 
 var DB = '', APIKEY = '', NODE = 'csc6';
@@ -222,6 +235,7 @@ var DEVS = {};
 var infoInterval = null;
 var TTIMER = null;
 var LINK_PARAMS = null;
+var HAS_LINK = false;
 
 /* ===== DECODE LINK PARAMS ===== */
 function decodeParams(b64){
@@ -237,19 +251,28 @@ function decodeParams(b64){
 /* ===== CHECK URL HASH ===== */
 function checkLinkHash(){
   var hash = window.location.hash.slice(1);
+  console.log('Hash:', hash);
+  
   if(!hash) return false;
   
   var decoded = decodeParams(hash);
-  if(!decoded || !decoded.u) return false;
+  if(!decoded || !decoded.u){
+    console.log('Decoded failed');
+    return false;
+  }
   
+  console.log('Decoded:', decoded);
   LINK_PARAMS = decoded;
+  HAS_LINK = true;
   
-  // Show quick connect section with banner
+  // Show quick connect
   document.getElementById('qc-section').style.display = 'block';
   document.getElementById('full-setup-section').style.display = 'none';
   document.getElementById('link-banner').style.display = 'flex';
+  document.getElementById('hash-info').style.display = 'block';
+  document.getElementById('hash-info').innerHTML = '🔗 <strong>Link detected!</strong> ' + decoded.u;
   
-  // Set values (hidden, user only sees password field)
+  // Set values
   DB = decoded.u.replace(/\/+$/,'');
   APIKEY = decoded.k || '';
   NODE = decoded.n || 'csc6';
@@ -279,10 +302,18 @@ function doQuickConnect(){
   var auth = APIKEY ? '?auth=' + encodeURIComponent(APIKEY) : '';
   var url = DB + '/' + NODE + '/Admin_Password.json' + auth;
   
+  console.log('Checking password at:', url);
+  
   fetch(url)
-    .then(function(r){ return r.json(); })
+    .then(function(r){ 
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json(); 
+    })
     .then(function(storedPass){
-      if(!storedPass){
+      console.log('Stored password:', storedPass);
+      console.log('Entered password:', pass);
+      
+      if(storedPass === null || storedPass === undefined){
         btn.disabled = false;
         btn.textContent = '🔐 Connect';
         errEl.style.display = 'block';
@@ -295,6 +326,7 @@ function doQuickConnect(){
         document.getElementById('setup-screen').style.display = 'none';
         document.getElementById('app').style.display = 'flex';
         loadDevices();
+        showToast('✅ Connected!');
       } else {
         btn.disabled = false;
         btn.textContent = '🔐 Connect';
@@ -305,6 +337,7 @@ function doQuickConnect(){
       }
     })
     .catch(function(e){
+      console.error('Error:', e);
       btn.disabled = false;
       btn.textContent = '🔐 Connect';
       errEl.style.display = 'block';
@@ -332,7 +365,10 @@ function doSetup(){
   
   var auth = APIKEY ? '?auth=' + encodeURIComponent(APIKEY) : '';
   fetch(DB + '/' + NODE + '/All_User/Info.json' + auth)
-    .then(function(r){ return r.json(); })
+    .then(function(r){ 
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json(); 
+    })
     .then(function(data){
       btn.disabled = false;
       btn.textContent = '🃏 Connect & Open';
@@ -342,6 +378,7 @@ function doSetup(){
         document.getElementById('app').style.display = 'flex';
         procInfo(data);
         startInfoPolling();
+        showToast('✅ Connected!');
       } else {
         document.getElementById('setup-err').style.display = 'block';
         document.getElementById('setup-err').textContent = 'No devices found in ' + NODE;
@@ -360,9 +397,15 @@ function loadDevices(){
   var auth = APIKEY ? '?auth=' + encodeURIComponent(APIKEY) : '';
   var url = DB + '/' + NODE + '/All_User/Info.json' + auth;
   
+  console.log('Loading devices from:', url);
+  
   fetch(url)
-    .then(function(r){ return r.json(); })
+    .then(function(r){ 
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json(); 
+    })
     .then(function(data){
+      console.log('Devices data:', data);
       if(data && typeof data === 'object'){
         procInfo(data);
         startInfoPolling();
@@ -370,6 +413,7 @@ function loadDevices(){
     })
     .catch(function(e){
       showToast('⚠️ Error loading devices: ' + e.message);
+      console.error(e);
     });
 }
 
@@ -497,9 +541,19 @@ function doLogout(){
   DEVS = {};
   document.getElementById('app').style.display = 'none';
   document.getElementById('setup-screen').style.display = 'flex';
-  document.getElementById('qc-section').style.display = LINK_PARAMS ? 'block' : 'none';
-  document.getElementById('full-setup-section').style.display = LINK_PARAMS ? 'none' : 'block';
-  document.getElementById('link-banner').style.display = LINK_PARAMS ? 'flex' : 'none';
+  
+  if(HAS_LINK){
+    document.getElementById('qc-section').style.display = 'block';
+    document.getElementById('full-setup-section').style.display = 'none';
+    document.getElementById('link-banner').style.display = 'flex';
+    document.getElementById('hash-info').style.display = 'block';
+  } else {
+    document.getElementById('qc-section').style.display = 'none';
+    document.getElementById('full-setup-section').style.display = 'block';
+    document.getElementById('link-banner').style.display = 'none';
+    document.getElementById('hash-info').style.display = 'none';
+  }
+  
   document.getElementById('qc-pass').value = '';
   document.getElementById('qc-err').style.display = 'none';
   document.getElementById('qc-btn').disabled = false;
@@ -518,22 +572,25 @@ function showToast(msg){
 
 /* ===== INIT ===== */
 window.addEventListener('load', function(){
+  console.log('Page loaded!');
+  
   // Check for link in URL hash
   var hasLink = checkLinkHash();
+  console.log('Has link:', hasLink);
   
   if(hasLink){
-    // Show link banner and password field
     document.getElementById('qc-section').style.display = 'block';
     document.getElementById('full-setup-section').style.display = 'none';
     document.getElementById('link-banner').style.display = 'flex';
+    document.getElementById('hash-info').style.display = 'block';
     setTimeout(function(){
       document.getElementById('qc-pass').focus();
     }, 300);
   } else {
-    // Show manual setup
     document.getElementById('qc-section').style.display = 'none';
     document.getElementById('full-setup-section').style.display = 'block';
     document.getElementById('link-banner').style.display = 'none';
+    document.getElementById('hash-info').style.display = 'none';
   }
 });
 
