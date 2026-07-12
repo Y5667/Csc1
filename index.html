@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Joker Penl</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0d0a0f;
+  --surface:#1a1520;
+  --surface2:#221d2a;
+  --surface3:#2a2433;
+  --border:rgba(255,255,255,.08);
+  --border2:rgba(212,0,255,.2);
+  --cyan:#d400ff;
+  --cyan-dim:#a800cc;
+  --cyan-glow:rgba(212,0,255,.25);
+  --cyan-soft:rgba(212,0,255,.08);
+  --violet:#7c3aed;
+  --violet-soft:rgba(124,58,237,.12);
+  --green:#00ff88;
+  --green-dim:#00cc6a;
+  --green-glow:rgba(0,255,136,.3);
+  --green-soft:rgba(0,255,136,.1);
+  --white:#e6edf3;
+  --muted:#8a7d90;
+  --red:#ff4466;
+  --red-soft:rgba(255,68,102,.12);
+  --amber:#e3b341;
+  --text-bright:#ffffff;
+}
+body{font-family:'Inter','Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--white);min-height:100vh;
+  overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;}
+html{overscroll-behavior-y:none;background:var(--bg);}
+
+/* ===== SETUP SCREEN ===== */
+#setup-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:radial-gradient(ellipse at 20% 50%,rgba(124,58,237,.12) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(212,0,255,.08) 0%,transparent 50%),#0d0a0f;}
+.sc{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:18px;
+  padding:28px 20px;width:100%;max-width:420px;
+  box-shadow:0 0 0 1px rgba(0,255,136,.1),0 20px 60px rgba(0,0,0,.4);}
+.logo{text-align:center;margin-bottom:20px;}
+.logo h1{font-size:21px;font-weight:800;color:var(--green);margin-top:6px;letter-spacing:.3px;}
+.logo p{font-size:11px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:1.2px;}
+.fg{margin-bottom:12px;}
+.fg label{display:block;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+.fg input{width:100%;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);
+  border-radius:10px;padding:11px 13px;font-size:14px;outline:none;font-family:inherit;color:var(--white);}
+.fg input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(0,255,136,.15);}
+.fg input::placeholder{color:var(--muted);}
+.pbtn{width:100%;background:linear-gradient(135deg,var(--green),var(--cyan));color:#ffffff;border:none;border-radius:10px;padding:14px;
+  font-size:15px;font-weight:800;cursor:pointer;margin-top:4px;font-family:inherit;letter-spacing:.3px;
+  box-shadow:0 4px 20px rgba(0,255,136,.4);}
+.pbtn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;}
+.errbox{background:var(--red-soft);border:1px solid rgba(255,68,102,.3);color:var(--red);
+  padding:10px 13px;border-radius:8px;font-size:13px;margin-top:10px;display:none;line-height:1.5;}
+
+/* ===== TOPBAR ===== */
+.topbar{background:rgba(13,10,15,.92);border-bottom:1px solid var(--border);padding:13px 15px;
+  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;
+  backdrop-filter:blur(12px);}
+.tb-l{display:flex;align-items:center;gap:8px;color:var(--white);font-size:15px;font-weight:700;}
+.tb-l .joker-icon{font-size:20px;}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 8px var(--green-glow);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+.tb-r{display:flex;gap:7px;}
+.xbtn{background:rgba(255,255,255,.06);color:var(--white);border:1px solid var(--border);
+  border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+.xbtn:hover{background:rgba(255,255,255,.1);}
+
+/* ===== APP LAYOUT ===== */
+#app{display:none;flex-direction:column;min-height:100vh;}
+.search-wrap{background:rgba(13,10,15,.92);padding:9px 14px;border-bottom:1px solid var(--border);
+  position:sticky;top:55px;z-index:190;backdrop-filter:blur(12px);}
+.sw{position:relative;}
+.sw input{width:100%;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:10px;padding:9px 34px 9px 36px;font-size:14px;outline:none;
+  font-family:inherit;color:var(--white);}
+.sw input:focus{border-color:var(--green);}
+.sw input::placeholder{color:var(--muted);}
+.s-ic{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--muted);}
+.s-cl{position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  background:none;border:none;font-size:14px;color:var(--muted);cursor:pointer;display:none;}
+
+/* ===== STATS ===== */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;padding:11px 14px 0;}
+.stat-box{background:var(--surface);border-radius:14px;padding:13px 8px;text-align:center;
+  border:1px solid var(--border);position:relative;overflow:hidden;}
+.stat-box::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,255,136,.06),transparent);border-radius:14px;}
+.stat-n{font-size:26px;font-weight:800;line-height:1;color:var(--text-bright);}
+.stat-l{font-size:10px;color:var(--muted);margin-top:3px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.stat-box .stat-n.online{color:#00ff88;}
+.stat-box .stat-n.offline{color:#8a7d90;}
+
+/* ===== TABS ===== */
+.dash-tabs{display:flex;background:rgba(13,10,15,.92);border-bottom:1px solid var(--border);
+  margin-top:10px;position:sticky;top:110px;z-index:180;backdrop-filter:blur(12px);}
+.dtab{flex:1;padding:11px 4px;border:none;background:none;font-size:12px;font-weight:700;
+  cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;color:var(--muted);}
+.dtab.active{color:var(--green);border-bottom:2px solid var(--green);}
+.dtab:hover{color:var(--white);}
+
+/* ===== DEVICE CARDS ===== */
+.dev-list{padding:8px 14px 80px;}
+.dev-card{background:var(--surface);border-radius:14px;margin-bottom:10px;
+  border:1px solid var(--border);border-left:3px solid var(--border);
+  overflow:hidden;transition:transform .15s,border-left-color .3s;position:relative;}
+.dev-card.is-online{border-left-color:var(--green);}
+.dev-card:active{transform:scale(.98);}
+.dev-inner{display:flex;align-items:center;gap:11px;padding:13px 13px 11px;cursor:pointer;}
+.dev-num{font-size:13px;font-weight:700;color:var(--muted);min-width:28px;}
+.dev-img{font-size:34px;filter:saturate(.8) brightness(1.2);}
+.dev-info{flex:1;}
+.dev-name{font-size:14px;font-weight:700;color:#ffffff;}
+.dev-id{font-size:11px;color:#6b5f7a;margin-top:2px;}
+.dev-bat{font-size:11px;color:#6b5f7a;margin-top:2px;}
+.dev-status-row{display:flex;align-items:center;justify-content:space-between;
+  padding:7px 13px;border-top:1px solid var(--border);}
+.st-on{color:var(--green);font-size:12px;font-weight:700;}
+.st-off{color:var(--muted);font-size:12px;font-weight:700;}
+.del-dev-btn{background:var(--red-soft);border:1px solid rgba(255,68,102,.3);color:var(--red);
+  border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
+
+/* ===== TOAST ===== */
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
+  background:var(--surface3);border:1px solid var(--border2);color:var(--text-bright);
+  padding:10px 22px;border-radius:22px;font-size:13px;z-index:9999;
+  opacity:0;pointer-events:none;transition:opacity .25s;white-space:nowrap;}
+
+/* ===== EMPTY STATE ===== */
+.empty{text-align:center;padding:50px 14px;color:var(--muted);}
+.empty .ei{font-size:40px;margin-bottom:10px;opacity:.4;}
+.empty p{font-size:14px;line-height:1.6;}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width:480px){
+  .stats-grid{gap:6px;}
+  .stat-box{padding:10px 6px;}
+  .stat-n{font-size:20px;}
+  .dev-inner{gap:8px;padding:10px 10px 8px;}
+  .dev-name{font-size:13px;}
+  .tb-l{font-size:13px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== SETUP SCREEN ===== -->
+<div id="setup-screen" style="display:flex;min-height:100vh;align-items:center;justify-content:center;padding:20px;
+  background:radial-gradient(ellipse at 20% 50%,rgba(124,58,237,.12) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(212,0,255,.08) 0%,transparent 50%),#0d0a0f;">
+  <div class="sc">
+    <div class="logo">
+      <div style="font-size:50px;">🃏</div>
+      <h1>Joker Penl</h1>
+      <p>Firebase Realtime Database Dashboard</p>
+    </div>
+    <div class="fg"><label>Firebase Database URL</label>
+      <input id="cfg-url" placeholder="https://xxx-default-rtdb.firebaseio.com" autocomplete="off"/></div>
+    <div class="fg"><label>API Key</label>
+      <input id="cfg-key" type="password" placeholder="AIzaSy..." autocomplete="off"/></div>
+    <div class="fg"><label>Main Node</label>
+      <input id="cfg-node" value="devices" autocomplete="off"/></div>
+    <button class="pbtn" id="setup-btn" onclick="doSetup()">🔮 Connect &amp; Open</button>
+    <div class="errbox" id="setup-err"></div>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="app">
+  <div class="topbar">
+    <div class="tb-l"><span class="joker-icon">🃏</span><span class="live-dot"></span> Joker Penl</div>
+    <div class="tb-r"><button class="xbtn" onclick="doLogout()">🚪 Logout</button></div>
+  </div>
+  <div class="search-wrap">
+    <div class="sw">
+      <span class="s-ic">🔍</span>
+      <input id="gsearch" placeholder="Search devices..." onkeydown="if(event.key==='Enter')doSearch()"/>
+      <button class="s-cl" id="s-cl" onclick="clrSrch()">✕</button>
+    </div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-box"><div class="stat-n" id="st-dev">0</div><div class="stat-l">📱 Devices</div></div>
+    <div class="stat-box"><div class="stat-n online" id="st-on">0</div><div class="stat-l">🟢 Online</div></div>
+    <div class="stat-box"><div class="stat-n offline" id="st-off">0</div><div class="stat-l">🔴 Offline</div></div>
+  </div>
+  <div class="dash-tabs">
+    <button class="dtab active" id="dt-all" onclick="switchDTab('all')">📱 All</button>
+    <button class="dtab inactive" id="dt-online" onclick="switchDTab('online')">🟢 Online</button>
+    <button class="dtab inactive" id="dt-offline" onclick="switchDTab('offline')">🔴 Offline</button>
+  </div>
+  <div id="pnl-all" class="dev-list"></div>
+  <div id="pnl-online" class="dev-list" style="display:none;"></div>
+  <div id="pnl-offline" class="dev-list" style="display:none;"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/*
+  Joker Penl - Firebase REST API
+  Structure:
+  <NODE>/
+    devices/
+      <deviceKey>/
+        name: string
+        status: "online" | "offline"
+        battery: number
+        lastSeen: timestamp
+*/
+
+var DB = '', APIKEY = '', NODE = 'devices';
+var DEVS = {};
+var SCROLL_POS = 0;
+var TTIMER = null;
+var infoInterval = null;
+
+/* ===== REST API ===== */
+function mkUrl(path, extra) {
+  var u = DB + '/' + path + '.json';
+  var params = [];
+  if (APIKEY) params.push('auth=' + encodeURIComponent(APIKEY));
+  if (extra) params.push(extra);
+  if (params.length) u += '?' + params.join('&');
+  return u;
+}
+
+function fbGet(path) {
+  var url = mkUrl(NODE + '/' + path);
+  return fetch(url)
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(d) {
+      if (d && d.error) throw new Error('Firebase: ' + d.error);
+      return d;
+    });
+}
+
+function fbDel(path) {
+  return fetch(mkUrl(NODE + '/' + path), {method: 'DELETE'})
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    });
+}
+
+/* ===== SETUP ===== */
+function doSetup() {
+  var url = (document.getElementById('cfg-url').value || '').trim().replace(/\/+$/, '');
+  var key = (document.getElementById('cfg-key').value || '').trim();
+  var node = (document.getElementById('cfg-node').value || '').trim() || 'devices';
+  document.getElementById('setup-err').style.display = 'none';
+  if (!url) { showErr('Firebase Database URL daalo!'); return; }
+  DB = url; APIKEY = key; NODE = node;
+  var btn = document.getElementById('setup-btn');
+  btn.disabled = true; btn.textContent = '⏳ Connecting...';
+  fbGet('devices')
+    .then(function(data) {
+      btn.disabled = false; btn.textContent = '🔮 Connect & Open';
+      if (!data) {
+        showErr('Devices node empty hai. Node name check karo: ' + NODE);
+        return;
+      }
+      launchApp(data);
+    })
+    .catch(function(e) {
+      btn.disabled = false; btn.textContent = '🔮 Connect & Open';
+      showErr('Connection failed: ' + e.message);
+    });
+}
+
+function showErr(m) {
+  var e = document.getElementById('setup-err');
+  e.textContent = m; e.style.display = 'block';
+}
+
+function launchApp(infoData) {
+  document.getElementById('setup-screen').style.display = 'none';
+  var a = document.getElementById('app');
+  a.style.display = 'flex'; a.style.flexDirection = 'column';
+  procInfo(infoData);
+  startInfoPolling();
+}
+
+function doLogout() {
+  clearInterval(infoInterval);
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('setup-screen').style.display = 'flex';
+  var btn = document.getElementById('setup-btn');
+  btn.disabled = false; btn.textContent = '🔮 Connect & Open';
+  DEVS = {};
+}
+
+/* ===== INFO POLLING ===== */
+function startInfoPolling() {
+  fbGet('devices').then(function(d) { if(d) procInfo(d); }).catch(function(){});
+  infoInterval = setInterval(function() {
+    fbGet('devices').then(function(d) { if(d) procInfo(d); }).catch(function(){});
+  }, 30000);
+}
+
+/* ===== PROCESS INFO ===== */
+function procInfo(data) {
+  if (!data || typeof data !== 'object') return;
+  var keys = Object.keys(data);
+  var online = 0, offline = 0;
+  var newDevs = {};
+  for (var i = 0; i < keys.length; i++) {
+    var k = keys[i];
+    var info = data[k];
+    if (!info || typeof info !== 'object') continue;
+    var st = String(info.status || '').toLowerCase();
+    var isOn = (st === 'online');
+    if (isOn) online++; else offline++;
+    newDevs[k] = {
+      key: k,
+      name: info.name || info.Name || k,
+      status: st,
+      battery: info.battery || info.Battery || '',
+      lastSeen: info.lastSeen || info.LastSeen || ''
+    };
+  }
+  DEVS = newDevs;
+  document.getElementById('st-dev').textContent = keys.length;
+  document.getElementById('st-on').textContent = online;
+  document.getElementById('st-off').textContent = offline;
+  renderDevLists();
+}
+
+/* ===== DASH TABS ===== */
+function switchDTab(tab) {
+  ['all','online','offline'].forEach(function(t) {
+    document.getElementById('dt-' + t).className = t === tab ? 'dtab active' : 'dtab inactive';
+    document.getElementById('pnl-' + t).style.display = t === tab ? '' : 'none';
+  });
+  renderDevLists();
+}
+
+/* ===== DEVICE LISTS ===== */
+function renderDevLists() {
+  var devs = Object.values(DEVS);
+  var all = devs.slice();
+  var online = devs.filter(function(d) { return d.status === 'online'; });
+  var offline = devs.filter(function(d) { return d.status !== 'online'; });
+  renderDevPanel('pnl-all', all, 0);
+  renderDevPanel('pnl-online', online, 0);
+  renderDevPanel('pnl-offline', offline, 0);
+}
+
+function renderDevPanel(pid, devs, si) {
+  var el = document.getElementById(pid);
+  if (!devs.length) {
+    el.innerHTML = '<div class="empty"><div class="ei">🃏</div><p>Koi device nahi mila</p></div>';
+    return;
+  }
+  el.innerHTML = '';
+  var frag = document.createDocumentFragment();
+  for (var i = 0; i < devs.length; i++) {
+    var d = devs[i];
+    var isOn = d.status === 'online';
+    var card = document.createElement('div'); card.className = 'dev-card' + (isOn ? ' is-online' : '');
+    var inner = document.createElement('div'); inner.className = 'dev-inner';
+    var statusHtml = isOn
+      ? '<div style="display:flex;align-items:center;gap:4px;margin-top:3px;"><span style="width:7px;height:7px;border-radius:50%;background:#00ff88;box-shadow:0 0 5px rgba(0,255,136,.5);animation:blink 1.5s infinite;display:inline-block;"></span><span style="font-size:10px;color:#00ff88;font-weight:700;">Online</span></div>'
+      : '<div style="font-size:10px;color:#8a7d90;margin-top:3px;">⏳ Offline</div>';
+    inner.innerHTML =
+      '<div class="dev-num">' + (si + i + 1) + '</div>' +
+      '<div class="dev-img">📱</div>' +
+      '<div class="dev-info">' +
+        '<div class="dev-name">' + eh(d.name) + '</div>' +
+        '<div class="dev-id">ID: ' + eh(d.key) + '</div>' +
+        (d.battery ? '<div class="dev-bat">🔋 Battery: ' + eh(String(d.battery)) + '%</div>' : '') +
+        statusHtml +
+      '</div>';
+    card.appendChild(inner);
+    var sr = document.createElement('div'); sr.className = 'dev-status-row';
+    var stxt = document.createElement('span');
+    stxt.className = isOn ? 'st-on' : 'st-off';
+    stxt.textContent = 'Status : ' + (isOn ? 'Online User' : 'Offline User');
+    sr.appendChild(stxt);
+    var db = document.createElement('button'); db.className = 'del-dev-btn'; db.textContent = '🗑️ Delete';
+    (function(k, b) {
+      b.addEventListener('click', function(e) { e.stopPropagation(); delDev(k, b); });
+    })(d.key, db);
+    sr.appendChild(db);
+    card.appendChild(sr);
+    frag.appendChild(card);
+  }
+  el.appendChild(frag);
+}
+
+/* ===== DELETE DEVICE ===== */
+function delDev(key, btn) {
+  if (!confirm('🃏 Device delete karo?')) return;
+  btn.textContent = '...'; btn.disabled = true;
+  fbDel('devices/' + key)
+    .then(function() { delete DEVS[key]; renderDevLists(); showToast('✅ Device deleted!'); })
+    .catch(function(e) { btn.textContent = '🗑️ Delete'; btn.disabled = false; showToast('❌ Fail: ' + e.message); });
+}
+
+/* ===== SEARCH ===== */
+function doSearch() {
+  var q = (document.getElementById('gsearch').value || '').trim().toLowerCase();
+  if (!q) { clrSrch(); return; }
+  var results = Object.values(DEVS).filter(function(d) {
+    return d.name.toLowerCase().indexOf(q) !== -1 ||
+           d.key.toLowerCase().indexOf(q) !== -1;
+  });
+  var el = document.getElementById('pnl-all');
+  if (!results.length) {
+    el.innerHTML = '<div class="empty"><div class="ei">🔍</div><p>"' + q + '" se koi device nahi mila</p></div>';
+    return;
+  }
+  renderDevPanel('pnl-all', results, 0);
+  ['all','online','offline'].forEach(function(t) {
+    document.getElementById('dt-' + t).className = t === 'all' ? 'dtab active' : 'dtab inactive';
+    document.getElementById('pnl-' + t).style.display = t === 'all' ? '' : 'none';
+  });
+  document.getElementById('s-cl').style.display = 'block';
+}
+
+function clrSrch() {
+  document.getElementById('gsearch').value = '';
+  document.getElementById('s-cl').style.display = 'none';
+  renderDevLists();
+}
+
+/* ===== UTILS ===== */
+function eh(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast'); t.innerHTML = msg; t.style.opacity = '1';
+  clearTimeout(TTIMER); TTIMER = setTimeout(function() { t.style.opacity = '0'; }, 2500);
+}
+
+/* ===== DISABLE PULL TO REFRESH ===== */
+var _lastY = 0;
+document.addEventListener('touchstart', function(e) {
+  _lastY = e.touches[0].clientY;
+}, {passive: false});
+document.addEventListener('touchmove', function(e) {
+  var y = e.touches[0].clientY;
+  var scrollTop = document.scrollingElement ? document.scrollingElement.scrollTop : document.body.scrollTop;
+  if (y > _lastY && scrollTop <= 0) {
+    e.preventDefault();
+  }
+}, {passive: false});
+
+/* ===== LOAD ON START ===== */
+window.addEventListener('load', function() {
+  // Auto-load any saved config from localStorage
+  try {
+    var saved = localStorage.getItem('joker_config');
+    if (saved) {
+      var cfg = JSON.parse(saved);
+      if (cfg.url) document.getElementById('cfg-url').value = cfg.url;
+      if (cfg.key) document.getElementById('cfg-key').value = cfg.key;
+      if (cfg.node) document.getElementById('cfg-node').value = cfg.node;
+    }
+  } catch(e) {}
+});
+</script>
+</body>
+</html>
