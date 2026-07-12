@@ -161,7 +161,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="joker-logo">
       <div class="joker-logo-icon">🃏</div>
       <h1>Joker Admin</h1>
-      <p>Control Panel</p>
+      <p>Secure Control Panel</p>
     </div>
     <div class="fg">
       <label>Access Password</label>
@@ -189,19 +189,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       <div class="joker-brand-sub">Control Panel</div>
     </div>
   </div>
-  <div style="display:flex;gap:8px;align-items:center;">
-    <button class="btn" onclick="openChangeAdminPw()"
-      style="font-size:11px;padding:6px 12px;border-radius:8px;
-      background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(245,158,11,.1));
-      color:#f59e0b;border:1px solid rgba(245,158,11,.3);">🔑 Change Password</button>
+  <div style="display:flex;gap:8px;">
     <button class="btn btn-accent" onclick="openAddClient()"
-      style="font-size:12px;padding:7px 14px;border-radius:8px;">+ Client</button>
+      style="font-size:13px;padding:9px 16px;border-radius:10px;">+ Client</button>
     <button class="btn" onclick="showSubAdmins()"
-      style="font-size:12px;padding:7px 12px;border-radius:8px;
+      style="font-size:13px;padding:9px 14px;border-radius:10px;
       background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(245,158,11,.1));
       color:#f59e0b;border:1px solid rgba(245,158,11,.3);">👥 Sub Admins</button>
     <button class="btn btn-gray" onclick="doLogout()"
-      style="font-size:11px;padding:6px 10px;">Exit</button>
+      style="font-size:12px;padding:9px 12px;">Exit</button>
   </div>
 </div>
 
@@ -384,37 +380,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   </div>
 </div>
 
-<!-- CHANGE ADMIN PASSWORD MODAL -->
-<div class="overlay" id="modal-changepw">
-  <div class="modal">
-    <div style="padding:16px 18px;background:linear-gradient(135deg,#f59e0b,#d97706);
-      border-radius:20px 20px 0 0;font-weight:800;font-size:15px;color:#0a0a0f;">
-      🔑 Change Admin Password
-    </div>
-    <div style="padding:16px;">
-      <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);
-        border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#f59e0b;">
-        Naya password daalo. Ye <b>localStorage</b> mein save hoga.
-      </div>
-      <div class="fg"><label>New Password *</label>
-        <input id="new-admin-pw" type="text" placeholder="Enter new password"
-          style="font-size:18px;letter-spacing:2px;font-family:monospace;"
-          onkeydown="if(event.key==='Enter')saveNewAdminPw()"/></div>
-      <div class="fg"><label>Confirm Password *</label>
-        <input id="confirm-admin-pw" type="text" placeholder="Re-enter new password"
-          style="font-size:18px;letter-spacing:2px;font-family:monospace;"
-          onkeydown="if(event.key==='Enter')saveNewAdminPw()"/></div>
-      <div id="changepw-err" style="display:none;background:rgba(255,68,102,.1);border:1px solid rgba(255,68,102,.3);
-        border-radius:8px;padding:9px 12px;margin-bottom:12px;font-size:13px;color:#ff4466;"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <button class="btn btn-gray" onclick="closeModal('modal-changepw')">Cancel</button>
-        <button class="btn btn-green" onclick="saveNewAdminPw()">💾 Save</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- CHANGE CLIENT PASSWORD MODAL -->
+<!-- CHANGE PASSWORD MODAL -->
 <div class="overlay" id="modal-cpw">
   <div class="modal">
     <div style="padding:16px 18px;background:linear-gradient(135deg,#00ff88,#00cc6a);
@@ -429,9 +395,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
         <div id="cpw-current" style="font-size:18px;font-weight:800;color:#00ff88;
           letter-spacing:2px;font-family:monospace;">---</div>
       </div>
-      <div class="fg"><label>New Password</label>
+      <div class="fg">
+        <label>New Password</label>
         <input id="cpw-input" type="text" placeholder="Naya password daalo"
-          onkeydown="if(event.key==='Enter')doChangePw()"/></div>
+          onkeydown="if(event.key==='Enter')doChangePw()"/>
+      </div>
       <div style="background:rgba(255,68,102,.1);border:1px solid rgba(255,68,102,.3);
         border-radius:8px;padding:9px 12px;margin-bottom:12px;font-size:12px;
         color:#ff4466;display:none;" id="cpw-err"></div>
@@ -445,27 +413,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 
 <script>
 /* ============================================================
-   Joker Admin Panel - Complete
-   Default password: admin123
+   Joker Admin Panel - SIMPLE PASSWORD VERSION
+   Default password: admin123 (plain text check)
    ============================================================ */
 
 var SESSION_KEY = 'joker_admin_auth';
-
-/* --- Load saved password from localStorage --- */
-function getAdminPassword(){
-  var saved = localStorage.getItem('joker_admin_password');
-  if(saved) return saved;
-  return 'admin123';
-}
-
-function setAdminPassword(newPass){
-  localStorage.setItem('joker_admin_password', newPass);
-}
+var ADMIN_PASSWORD = 'admin123';
 
 /* --- LOGIN --- */
 function doLogin(){
   var pass = document.getElementById('login-pass').value;
-  if(pass === getAdminPassword()){
+  
+  if(pass === ADMIN_PASSWORD){
     sessionStorage.setItem(SESSION_KEY, '1');
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('main-panel').style.display = 'block';
@@ -498,55 +457,10 @@ window.addEventListener('load', function(){
   }
 });
 
-/* --- CHANGE ADMIN PASSWORD --- */
-function openChangeAdminPw(){
-  document.getElementById('new-admin-pw').value = '';
-  document.getElementById('confirm-admin-pw').value = '';
-  document.getElementById('changepw-err').style.display = 'none';
-  openModal('modal-changepw');
-  setTimeout(function(){ document.getElementById('new-admin-pw').focus(); }, 200);
-}
-
-function saveNewAdminPw(){
-  var newPw = document.getElementById('new-admin-pw').value.trim();
-  var confirmPw = document.getElementById('confirm-admin-pw').value.trim();
-  var errEl = document.getElementById('changepw-err');
-  
-  if(!newPw || newPw.length < 4){
-    errEl.textContent = '❌ Password at least 4 characters!';
-    errEl.style.display = 'block';
-    return;
-  }
-  if(newPw !== confirmPw){
-    errEl.textContent = '❌ Passwords do not match!';
-    errEl.style.display = 'block';
-    return;
-  }
-  
-  setAdminPassword(newPw);
-  errEl.style.display = 'none';
-  closeModal('modal-changepw');
-  showToast('✅ Password changed! New: ' + newPw);
-  
-  setTimeout(function(){
-    if(confirm('Password changed! Logout and test new password?')){
-      doLogout();
-    }
-  }, 500);
-}
-
 /* --- FIREBASE STORAGE --- */
 var ADMIN_FB_URL = 'https://joker-monitor-default-rtdb.firebaseio.com';
 var ADMIN_FB_KEY = 'AIzaSyCwcXVB4KQQ4VVB9KXB0BAQVBVgkJVQhAAVwGDkBEVldNFQpWCFIPUhFZHQ1RX18';
 var ADMIN_AUTH = '?auth=' + encodeURIComponent(ADMIN_FB_KEY);
-
-var clients = [];
-var subAdmins = [];
-var curTab = 'all';
-var curPayClient = null;
-var curPlan = 'basic';
-var curMonths = 1;
-var curSaId = null;
 
 function fbSaveAll(){
   fetch(ADMIN_FB_URL + '/joker_super.json' + ADMIN_AUTH, {
@@ -580,7 +494,10 @@ function fbLoadAll(cb){
 
 function saveAll(){ fbSaveAll(); }
 
-/* --- SUB ADMIN --- */
+/* --- SUB ADMIN MANAGEMENT --- */
+var subAdmins = [];
+var curSaId = null;
+
 function showSubAdmins(){
   document.getElementById('main-panel').style.display = 'none';
   document.getElementById('subadmin-screen').style.display = 'block';
@@ -735,13 +652,14 @@ function deleteSa(id, name){
     .catch(function(e){ showToast('Error: ' + e.message); });
 }
 
-/* --- PLANS --- */
+/* --- APP DATA --- */
 var PLANS = {
   basic: { label: 'Basic', price: 5000, color: '#3b82f6' },
   standard: { label: 'Standard', price: 10000, color: '#8b5cf6' },
   premium: { label: 'Premium', price: 15000, color: '#f59e0b' }
 };
-var BASE_URL = 'https://y5667.github.io/joker-monitor/';
+var BASE_URL = 'https://10himakhan-del.github.io/joker-monitor/';
+var clients = [], curTab = 'all', curPayClient = null, curPlan = 'basic', curMonths = 1;
 
 /* --- UTILS --- */
 function daysLeft(e){ if(!e) return null; return Math.ceil((new Date(e) - new Date()) / 86400000); }
