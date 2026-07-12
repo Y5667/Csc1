@@ -150,28 +150,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   border:1px solid rgba(0,255,136,.2);border-radius:10px;
   padding:10px 12px;margin-bottom:10px;
   display:flex;align-items:center;justify-content:space-between;gap:10px;}
-
-/* CHANGE PASSWORD MODAL */
-#modal-changepw .modal{
-  max-width:360px;
-}
-#modal-changepw .modal-header{
-  padding:16px 18px;
-  background:linear-gradient(135deg,#f59e0b,#d97706);
-  border-radius:20px 20px 0 0;
-  font-weight:800;
-  font-size:15px;
-  color:#0a0a0f;
-}
-.changepw-hint{
-  background:rgba(245,158,11,.1);
-  border:1px solid rgba(245,158,11,.2);
-  border-radius:10px;
-  padding:10px 12px;
-  margin-bottom:14px;
-  font-size:12px;
-  color:#f59e0b;
-}
 </style>
 </head>
 <body>
@@ -183,7 +161,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="joker-logo">
       <div class="joker-logo-icon">🃏</div>
       <h1>Joker Admin</h1>
-      <p>Secure Control Panel</p>
+      <p>Control Panel</p>
     </div>
     <div class="fg">
       <label>Access Password</label>
@@ -213,17 +191,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   </div>
   <div style="display:flex;gap:8px;align-items:center;">
     <button class="btn" onclick="openChangeAdminPw()"
-      style="font-size:12px;padding:7px 14px;border-radius:10px;
+      style="font-size:11px;padding:6px 12px;border-radius:8px;
       background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(245,158,11,.1));
       color:#f59e0b;border:1px solid rgba(245,158,11,.3);">🔑 Change Password</button>
     <button class="btn btn-accent" onclick="openAddClient()"
-      style="font-size:13px;padding:9px 16px;border-radius:10px;">+ Client</button>
+      style="font-size:12px;padding:7px 14px;border-radius:8px;">+ Client</button>
     <button class="btn" onclick="showSubAdmins()"
-      style="font-size:13px;padding:9px 14px;border-radius:10px;
+      style="font-size:12px;padding:7px 12px;border-radius:8px;
       background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(245,158,11,.1));
       color:#f59e0b;border:1px solid rgba(245,158,11,.3);">👥 Sub Admins</button>
     <button class="btn btn-gray" onclick="doLogout()"
-      style="font-size:12px;padding:9px 12px;">Exit</button>
+      style="font-size:11px;padding:6px 10px;">Exit</button>
   </div>
 </div>
 
@@ -239,7 +217,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   </div>
   <div class="stat-box">
     <div class="stat-num" id="s-due" style="color:#ff4466;">0</div>
-    <div class="stat-lbl">Due/Exp</div>
+    <div class="stat-lbl">Due/Expired</div>
   </div>
 </div>
 
@@ -254,36 +232,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 </div>
 
 <div id="client-list"></div>
-</div>
-
-<!-- CHANGE ADMIN PASSWORD MODAL -->
-<div class="overlay" id="modal-changepw">
-  <div class="modal">
-    <div class="modal-header">🔑 Change Admin Password</div>
-    <div style="padding:16px;">
-      <div class="changepw-hint">
-        Naya password set karo. Ye password <b>localStorage</b> mein save hoga.
-      </div>
-      <div class="fg">
-        <label>New Password *</label>
-        <input id="new-admin-pw" type="text" placeholder="Enter new password"
-          style="font-size:18px;letter-spacing:2px;font-family:monospace;"
-          onkeydown="if(event.key==='Enter')saveNewAdminPw()"/>
-      </div>
-      <div class="fg">
-        <label>Confirm Password *</label>
-        <input id="confirm-admin-pw" type="text" placeholder="Re-enter new password"
-          style="font-size:18px;letter-spacing:2px;font-family:monospace;"
-          onkeydown="if(event.key==='Enter')saveNewAdminPw()"/>
-      </div>
-      <div id="changepw-err" style="display:none;background:rgba(255,68,102,.1);border:1px solid rgba(255,68,102,.3);
-        border-radius:8px;padding:9px 12px;margin-bottom:12px;font-size:13px;color:#ff4466;"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <button class="btn btn-gray" onclick="closeModal('modal-changepw')">Cancel</button>
-        <button class="btn btn-green" onclick="saveNewAdminPw()">💾 Save Password</button>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- SUB ADMIN SCREEN -->
@@ -436,6 +384,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   </div>
 </div>
 
+<!-- CHANGE ADMIN PASSWORD MODAL -->
+<div class="overlay" id="modal-changepw">
+  <div class="modal">
+    <div style="padding:16px 18px;background:linear-gradient(135deg,#f59e0b,#d97706);
+      border-radius:20px 20px 0 0;font-weight:800;font-size:15px;color:#0a0a0f;">
+      🔑 Change Admin Password
+    </div>
+    <div style="padding:16px;">
+      <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);
+        border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#f59e0b;">
+        Naya password daalo. Ye <b>localStorage</b> mein save hoga.
+      </div>
+      <div class="fg"><label>New Password *</label>
+        <input id="new-admin-pw" type="text" placeholder="Enter new password"
+          style="font-size:18px;letter-spacing:2px;font-family:monospace;"
+          onkeydown="if(event.key==='Enter')saveNewAdminPw()"/></div>
+      <div class="fg"><label>Confirm Password *</label>
+        <input id="confirm-admin-pw" type="text" placeholder="Re-enter new password"
+          style="font-size:18px;letter-spacing:2px;font-family:monospace;"
+          onkeydown="if(event.key==='Enter')saveNewAdminPw()"/></div>
+      <div id="changepw-err" style="display:none;background:rgba(255,68,102,.1);border:1px solid rgba(255,68,102,.3);
+        border-radius:8px;padding:9px 12px;margin-bottom:12px;font-size:13px;color:#ff4466;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <button class="btn btn-gray" onclick="closeModal('modal-changepw')">Cancel</button>
+        <button class="btn btn-green" onclick="saveNewAdminPw()">💾 Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- CHANGE CLIENT PASSWORD MODAL -->
 <div class="overlay" id="modal-cpw">
   <div class="modal">
@@ -451,11 +429,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
         <div id="cpw-current" style="font-size:18px;font-weight:800;color:#00ff88;
           letter-spacing:2px;font-family:monospace;">---</div>
       </div>
-      <div class="fg">
-        <label>New Password</label>
+      <div class="fg"><label>New Password</label>
         <input id="cpw-input" type="text" placeholder="Naya password daalo"
-          onkeydown="if(event.key==='Enter')doChangePw()"/>
-      </div>
+          onkeydown="if(event.key==='Enter')doChangePw()"/></div>
       <div style="background:rgba(255,68,102,.1);border:1px solid rgba(255,68,102,.3);
         border-radius:8px;padding:9px 12px;margin-bottom:12px;font-size:12px;
         color:#ff4466;display:none;" id="cpw-err"></div>
@@ -469,23 +445,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 
 <script>
 /* ============================================================
-   Joker Admin Panel - WITH CHANGE PASSWORD FEATURE
+   Joker Admin Panel - FIXED BASE_URL
    Default password: admin123
-   Password saved in localStorage
    ============================================================ */
 
 var SESSION_KEY = 'joker_admin_auth';
 
+/* --- FIXED: BASE_URL for GitHub Pages --- */
+var BASE_URL = 'https://y5667.github.io/Csc1/';
+
 /* --- Load saved password from localStorage --- */
 function getAdminPassword(){
   var saved = localStorage.getItem('joker_admin_password');
-  if(saved){
-    return saved;
-  }
-  return 'admin123'; // Default password
+  if(saved) return saved;
+  return 'admin123';
 }
 
-/* --- Save password to localStorage --- */
 function setAdminPassword(newPass){
   localStorage.setItem('joker_admin_password', newPass);
 }
@@ -493,9 +468,7 @@ function setAdminPassword(newPass){
 /* --- LOGIN --- */
 function doLogin(){
   var pass = document.getElementById('login-pass').value;
-  var ADMIN_PASSWORD = getAdminPassword();
-  
-  if(pass === ADMIN_PASSWORD){
+  if(pass === getAdminPassword()){
     sessionStorage.setItem(SESSION_KEY, '1');
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('main-panel').style.display = 'block';
@@ -543,13 +516,12 @@ function saveNewAdminPw(){
   var errEl = document.getElementById('changepw-err');
   
   if(!newPw || newPw.length < 4){
-    errEl.textContent = '❌ Password at least 4 characters long hona chahiye!';
+    errEl.textContent = '❌ Password at least 4 characters!';
     errEl.style.display = 'block';
     return;
   }
-  
   if(newPw !== confirmPw){
-    errEl.textContent = '❌ Password match nahi kar rahe!';
+    errEl.textContent = '❌ Passwords do not match!';
     errEl.style.display = 'block';
     return;
   }
@@ -557,11 +529,10 @@ function saveNewAdminPw(){
   setAdminPassword(newPw);
   errEl.style.display = 'none';
   closeModal('modal-changepw');
-  showToast('✅ Password changed successfully! New password: ' + newPw);
+  showToast('✅ Password changed! New: ' + newPw);
   
-  // Logout user so they can test new password
   setTimeout(function(){
-    if(confirm('Password change ho gaya! Ab logout karke naye password se try karein?')){
+    if(confirm('Password changed! Logout and test new password?')){
       doLogout();
     }
   }, 500);
@@ -571,6 +542,14 @@ function saveNewAdminPw(){
 var ADMIN_FB_URL = 'https://joker-monitor-default-rtdb.firebaseio.com';
 var ADMIN_FB_KEY = 'AIzaSyCwcXVB4KQQ4VVB9KXB0BAQVBVgkJVQhAAVwGDkBEVldNFQpWCFIPUhFZHQ1RX18';
 var ADMIN_AUTH = '?auth=' + encodeURIComponent(ADMIN_FB_KEY);
+
+var clients = [];
+var subAdmins = [];
+var curTab = 'all';
+var curPayClient = null;
+var curPlan = 'basic';
+var curMonths = 1;
+var curSaId = null;
 
 function fbSaveAll(){
   fetch(ADMIN_FB_URL + '/joker_super.json' + ADMIN_AUTH, {
@@ -604,10 +583,7 @@ function fbLoadAll(cb){
 
 function saveAll(){ fbSaveAll(); }
 
-/* --- SUB ADMIN MANAGEMENT --- */
-var subAdmins = [];
-var curSaId = null;
-
+/* --- SUB ADMIN --- */
 function showSubAdmins(){
   document.getElementById('main-panel').style.display = 'none';
   document.getElementById('subadmin-screen').style.display = 'block';
@@ -762,14 +738,12 @@ function deleteSa(id, name){
     .catch(function(e){ showToast('Error: ' + e.message); });
 }
 
-/* --- APP DATA --- */
+/* --- PLANS --- */
 var PLANS = {
   basic: { label: 'Basic', price: 5000, color: '#3b82f6' },
   standard: { label: 'Standard', price: 10000, color: '#8b5cf6' },
   premium: { label: 'Premium', price: 15000, color: '#f59e0b' }
 };
-var BASE_URL = 'https://10himakhan-del.github.io/joker-monitor/';
-var clients = [], curTab = 'all', curPayClient = null, curPlan = 'basic', curMonths = 1;
 
 /* --- UTILS --- */
 function daysLeft(e){ if(!e) return null; return Math.ceil((new Date(e) - new Date()) / 86400000); }
@@ -1038,7 +1012,7 @@ function copyLinkForClient(id){
   var c = clients.find(function(x){ return x.id === id; });
   if(!c) return;
   try{
-    var link = BASE_URL + '#' + encodeLink(c, false);
+    var link = BASE_URL + 'joker-panel.html#' + encodeLink(c, false);
     if(navigator.clipboard) navigator.clipboard.writeText(link).catch(function(){});
     showToast('📋 Client link copied!');
   } catch(e){ showToast('Error: ' + e.message); }
@@ -1047,7 +1021,7 @@ function copyAdminLink(id){
   var c = clients.find(function(x){ return x.id === id; });
   if(!c) return;
   try{
-    var link = BASE_URL + '#' + encodeLink(c, true);
+    var link = BASE_URL + 'joker-panel.html#' + encodeLink(c, true);
     if(navigator.clipboard) navigator.clipboard.writeText(link).catch(function(){});
     showToast('🔓 Admin link copied!');
   } catch(e){ showToast('Error: ' + e.message); }
